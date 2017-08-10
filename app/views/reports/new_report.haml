@@ -1,0 +1,181 @@
+.white-sticky-header.fixed-in-app-header{style: "padding-top: 22px;"}
+  %span{style: "margin-top:5px;padding-left:30px;"}  
+    %span.navigation_sec
+      %a{href: "/leads"}
+        Leads
+      ="/"
+    %span.curr_page_name
+      Reports
+.container.report_page
+  .row
+    .col-md-12
+      .col-md-8.padlft
+        = render partial: "left_side_content"
+      .col-md-4.padlft.padrht
+        .con-box1.gen_report_box
+          .generate_report_section.report_box
+            %h3
+              Generate Report
+            .report_container
+              = form_tag(generate_report_path(format: "csv"), method: :post) do
+                .form-group.select_report_type
+                  = select_tag "report_type", options_for_select([ "Leads", "Tasks", "Contacts", "Activities", "Users" ]), :prompt => '-Report type-',:class=>"form-control", required: true
+                .form-group
+                  .option_one
+                    .leads_option_one
+                      = select_tag "priority_type", options_for_select([ "Hot", "Warm", "Cold" ]), :prompt => '-Priority-',:class=>"form-control"
+                    .tasks_option_one.activities_option_one
+                      = select_tag "date_type", options_for_select([ "Specific Date", "Date Range" ]), :prompt => '-Select date type-',:class=>"form-control"
+                    .contacts_option_one
+                      = select_tag "cont_country", options_for_select(Country.all.collect {|c| [ c.name, c.id ]}), :prompt => '- Country -',:class=>"form-control"
+                    .users_option_one
+                      = select_tag "admin_type", options_for_select([ "Admin", "User" ]), :prompt => '-Select admin type-',:class=>"form-control"
+                .form-group
+                  .option_two
+                    .leads_option_two
+                      = select_tag "lead_country", options_for_select(Country.all.collect {|c| [ c.name, c.id ]}), :prompt => '- Country -',:class=>"form-control"
+                    / Select Date and Select Date Range for Task and activities
+                    .specific_report_date
+                      = text_field_tag "report_date","", id: "report_date", name: "report_date"  , autocomplete: "off",:class=> "col-md-12 form-control", :placeholder => "Select Date",:onkeydown => "disable_text(event);"
+                    .range_report_date
+                      .col-md-6{:style => "padding-left:0px"}
+                        = text_field_tag "report_date_first","", id: "report_date_first", name: "report_date_first"  , autocomplete: "off",:class=> "col-md-12 form-control report_date_range", :placeholder => "Select 1st Date Range",:onkeydown => "disable_text(event);"
+                      .col-md-6{:style => "padding-right:0px"}
+                        = text_field_tag "report_date_sec","", id: "report_date_sec", name: "report_date_sec"  , autocomplete: "off",:class=> "col-md-12 form-control report_date_range", :placeholder => "Select 2nd Date Range",:onkeydown => "disable_text(event);"
+                      .cb
+              
+                .form-group.pdf_radio
+                  %span
+                    %input{type: "radio", name: "format", id: "csv_format", value: "CSV", checked: true } CSV
+                  /%span
+                  /  %input{type: "radio", name: "format", id: "pdf_format", value: "PDF" } PDF      
+                .form-group
+                  = submit_tag "Generate Report", :class => "btn btn-success"
+
+
+:javascript
+  var report_type;
+  $("#report_type").on('change', function(){
+    report_type = $(this).val();
+    $(".option_one div").hide();
+    $(".option_two div").hide();
+    $(".option_one input").val("");
+    $(".option_two input").val("");
+    $(".option_one ."+report_type.toLowerCase()+"_option_one").show();
+    $.ajax({
+    url: '/reload_left_side_content',
+      type: 'POST',
+      success: function(res) {
+        $(".report_page .col-md-8").html(res);
+        $(".report_container."+report_type.toLowerCase()+"_report").css({"border":"1px solid #aaa"});
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    });
+  });
+  var priority_type;
+  $("#priority_type").on('change', function(){
+    priority_type = $(this).val();
+    $(".option_two input").val("");
+    $.ajax({
+      url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,priority_type: priority_type},
+      success: function(res) {
+        $(".option_two ."+report_type.toLowerCase()+"_option_two").show();
+        $("."+report_type.toLowerCase()+"_report").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    });
+  });
+  $("#lead_country").on('change', function(){
+    var country_name = $(this).val();
+    $.ajax({
+    url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,priority_type: priority_type,country_name: country_name},
+      success: function(res) {
+        $("."+report_type.toLowerCase()+"_report").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    });
+  });
+
+  $("#date_type").on("change", function(){ 
+    $(".option_two div").hide();
+    $(".option_two input").val("");
+    if( $("#date_type").val() == "Specific Date" ){
+      $(".option_two .specific_report_date").show();
+    } 
+    else{
+      $(".option_two .range_report_date").show();
+      $(".option_two .range_report_date .col-md-6").show();
+    }
+      
+  });
+  $("#report_date").on("change", function(){ 
+    var date = $(this).val();
+    date_type = $("#date_type").val();
+    $.ajax({
+    url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,date_type: date_type,date: date},
+      success: function(res) {
+        $("."+report_type.toLowerCase()+"_report h2").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    }); 
+  });
+  $("#report_date_sec").on("change", function(){ 
+    var first_date = $("#report_date_first").val();
+    var sec_date = $("#report_date_sec").val();
+    date_type = $("#date_type").val();
+    $.ajax({
+    url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,date_type: date_type,first_date: first_date,sec_date: sec_date},
+      success: function(res) {
+        $("."+report_type.toLowerCase()+"_report h2").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    }); 
+  });
+  
+  $("#cont_country").on("change", function(){ 
+    country = $(this).val();
+    $.ajax({
+    url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,country: country},
+      success: function(res) {
+        $("."+report_type.toLowerCase()+"_report h2").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    }); 
+  });
+
+  $("#admin_type").on("change", function(){ 
+    admin_type = $(this).val();
+    $.ajax({
+    url: '/get_selected_filter',
+      type: 'POST',
+      data: {report_type: report_type,admin_type: admin_type},
+      success: function(res) {
+        $("."+report_type.toLowerCase()+"_report h2").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    }); 
+  });

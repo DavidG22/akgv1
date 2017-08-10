@@ -1,0 +1,65 @@
+= form_for @user, :html => { :class => 'form-horizontal', :id => "user_edit_form",:method => "PUT" } do |f|
+  .row
+    .form-group.col-md-6.prf_img
+      %label Profile Image
+      .img_upload
+        .cms-file-input.ace-file-multiple{style:"text-align:center;width:450px;"}
+          .fl
+            = f.file_field "profile_image",:class=> "form-control btn-metis-7 btn-file file_hid_block"
+
+          .fl{:style => "margin-top:-28px;"}
+            - if @user.image.present?
+              = image_tag @user.image.image.url(:thumb), style: "max-width:80px", :id=>"previewHolder"
+            - else
+              = image_tag "/assets/prof_img.png", :alt=>"profile image", style: "max-width:90px; max-height:90px", :id=>"previewHolder"
+            .click_img
+              Preview  
+          .cb
+          .cb
+  .row{:style => "margin-top:10px;"}
+    .form-group.col-md-6
+      =f.text_field :first_name, :required => true, :html=>{:maxlength=> "20"},:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+      %label.control-label{:for => "input"} First Name
+      %i.bar
+    .form-group.col-md-6
+      =f.text_field :last_name,:html=>{:maxlength=> "20"},:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+      %label.control-label{:for => "input"} Last Name
+      %i.bar
+  .row
+    .form-group.col-md-6
+      =f.email_field :email, :required => true, :disabled => true, :style => "color: #333;"
+      %label.control-label.control-mr-top20{:for => "input"} Email
+      %i.bar
+    .form-group.col-md-6
+      =f.text_field :work_phone,:class=>"bfh-phone","data-format"=>" (ddd) ddd-dddd", :onblur => "this.value = jQuery.trim((this.value).replace(/^\s*/g,''))",:onclick =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))", :value => @user.phone.present? ? @user.phone.phone_no : "", :required => true
+      %label.control-label.control-mr-top7{:for => "input"} Phone
+      %i.bar
+  .row
+    .form-group.col-md-6
+      = f.time_zone_select :time_zone, ActiveSupport::TimeZone.us_zones, { }, :required => true
+      %label.control-label{:for => "input"} Time Zone
+      %i.bar
+    / .form-group.col-md-6{:style => "float:left;margin-left:31px;"}
+    /   = f.select :priority_label, options_for_select((0..15).to_a, :selected => @user.priority_label),{:include_blank => '- Priority Level -'},:class => 'form-control'
+  .cb
+  .modal-footer{style:"margin-left:-15px;"}
+    .form-actions.navbar-right
+      %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+        %span.c_links
+          Cancel
+      =f.submit "Update", :class=>"btn btn-primary", :disable_with => "Updating...."
+      
+:javascript
+  function readURL(input) {
+         if (input.files && input.files[0]) {
+             var reader = new FileReader();
+             reader.onload = function(e) {
+                 $('#previewHolder').attr('src', e.target.result);
+             }
+
+             reader.readAsDataURL(input.files[0]);
+         }
+     }
+     $("#user_profile_image").change(function() {
+         readURL(this);
+     });

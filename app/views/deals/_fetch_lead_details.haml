@@ -1,0 +1,123 @@
+.profile-details 
+  %span.close_lead_details{onclick: "hideDetails()"}
+    x
+  .pfl-detail-blk
+    - con_name = @lead.contact_info["name"].present? ? @lead.contact_info["name"][0].upcase : @lead.contact_info["email"].present? ? @lead.contact_info["email"][0].upcase : "NA"
+    - contact = @lead.deals_contacts.first.contactable
+    - if contact.present? && contact.image.present?
+      .big-profile-img
+        = image_tag contact.image.image.url(:small)
+    - else
+      .lead-profile-icon.big-profile-icon{:style => "background:#{@lead.get_color_code(con_name.downcase)}"}
+        = con_name
+    %h6
+      = @lead.contact_info["name"].present? ? @lead.contact_info["name"] : "NA" 
+    %span
+      = @lead.country_id.present? ? Country.find(@lead.country_id).name : "NA"
+    .change-pfl-icon
+      - if !@lead.assigned_to.nil?
+        - user = User.find_by_id(@lead.assigned_to)
+        - assn_user_id = user.id if user
+        - assn_user = user.first_name.present? ? user.first_name : user.email if user
+      - else
+        - assn_user_id = 'null'
+      .dropdown
+        %span.cwkp-sprite.more-option.dropdown-toggle{"data-toggle" => "dropdown"}
+        %ul.edit_list_content.dropdown-menu.edit-icon-in-ll
+          %li
+            %a{"data-toggle" => "modal", href: "#taskModal", rel: "tooltip", title: "Add a Task",onclick: "$('#task_referrer').val('Other Lead');task_deal(#{@lead.id});$('#deal_title_task').val('#{@lead.title}');$('#hfield').val(#{@lead.id});$('#deal_title_task').val('#{@lead.title}').prop('disabled', true);", "data-id" => @lead.id} 
+              %span.add_i_deal
+              %span Add Task
+          %li
+            %a{"data-target" => "#noteModal", "data-toggle" => "modal", href: "javascript:",  onclick: "$('#notable_id').val(#{@lead.id});$('#notable_type').val('Deal');", title: "Add Note"} 
+              %span.add_i_note
+              %span Add Note
+          %li
+            %a{"data-target" => "#SendEmailModal", "data-toggle" => "modal", href: "javascript:",onclick: "$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val('#{@lead.contact_email.present? ? @lead.contact_email : ""}');$('#mailer_id').val(#{@lead.id});$('#mailer_type').val('Deal');", title: "Send Email"} 
+              %span.glyphicon.glyphicon-envelope
+              %span Send Email
+          %li
+            %a{href: edit_lead_path(@lead.to_param), title: "Edit"} 
+              %span.glyphicon.glyphicon-edit
+              %span Edit
+          %li
+            =link_to "leads/#{@lead.to_param}", method: "delete", data: { id: @lead.id }, :confirm => "Are you sure?", title: "Delete" do
+              %span.glyphicon.glyphicon-trash
+              %span Delete
+          - deal_status = DealStatus.where(@lead.deal_status_id).first
+          - if deal_status.present? && deal_status.name != "Won"
+            %li                        
+              %a.movedealincomepop{"data-toggle" => "modal", href: "#dealmoveModal", rel: "popup", title: "Move Lead",onclick: "move_deal(#{@lead.id},#{assn_user_id})", "data-id" => @lead.id}
+                %span.add_i_move
+                %span  Move Lead
+      / %a{href: "javascript:void(0)", onclick: "addAttachmentToLead(#{@lead.id})", "data-target" => "#AddLeadAttachmentLead", "data-toggle" => "modal"}  
+      /   %span.cwkp-sprite.add-attachment
+      %a{"data-target" => "#SendEmailModal", "data-toggle" => "modal", href: "javascript:void(0)",onclick: "$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val('#{@lead.contact_email.present? ? @lead.contact_email : ""}');$('#mailer_id').val(#{@lead.id});$('#mailer_type').val('Deal');", title: "Send Email"}  
+        %span.cwkp-sprite.send-email
+      %a{href: "leads/#{@lead.to_param}/edit", title: "Edit"}  
+        %span.cwkp-sprite.edit-lead
+      =link_to "leads/#{@lead.to_param}", method: "delete", :confirm => "Are you sure?", data: { id: @lead.id }, title: "Delete" do
+        %span.cwkp-sprite.delete-lead
+    = link_to "leads/#{@lead.to_param}" do
+      .clr-user-icon.cwkp-sprite.contact-icon
+  .pfl-table
+    %table
+      %tr
+        %td
+          %strong Opportunity:
+        %td 
+          %span{title: "#{@lead.title}"}  
+            = @lead.title.truncate(15)
+      %tr
+        %td
+          %strong Tel:
+        %td 
+          = @lead.deals_contacts.present? && @lead.deals_contacts.first.contactable.present? && @lead.deals_contacts.first.contactable.phones.by_phone_type("work").present?  ? @lead.deals_contacts.first.contactable.phones.by_phone_type("work").first.phone_no : ""
+      %tr
+        %td
+          %strong Created by:
+        %td 
+          - cre_by = @lead.initiator.present? && @lead.initiator.full_name.strip.present? ? @lead.initiator.full_name : @lead.initiator.email
+          - if cre_by.size > 20
+            %span{title: cre_by}
+              = cre_by.truncate(20)
+          - else
+            = cre_by
+      %tr
+        %td
+          %strong Assigned to:
+        %td 
+          = @lead.assigned_user.present? ? (@lead.assigned_user.full_name.present? ? @lead.assigned_user.full_name : @lead.assigned_user.email.split("@")[0]) : "NA"
+      / %tr
+      /   %td
+      /     %strong People involved:
+      /   %td 
+
+      %tr
+        %td
+          %strong Company name:
+        %td 
+          = @lead.deals_contacts.present? && @lead.deals_contacts.first.contactable.present? ? (@lead.deals_contacts.first.contactable.class.name == "IndividualContact" ? (@lead.deals_contacts.first.contactable.company_contact.present? ? @lead.deals_contacts.first.contactable.company_contact.name : "Not Available") : @lead.deals_contacts.first.contactable.name) : "Not Available"
+      %tr{style: "border-bottom:none;"}
+        %td
+          %strong Company size:
+        %td 
+          = @lead.deals_contacts.present? && @lead.deals_contacts.first.contactable.present? ? (@lead.deals_contacts.first.contactable.class.name == "IndividualContact" ? (@lead.deals_contacts.first.contactable.company_contact.present? && @lead.deals_contacts.first.contactable.company_contact.company_strength.present? ? @lead.deals_contacts.first.contactable.company_contact.company_strength.try(:range) : "Not Available") : @lead.deals_contacts.first.contactable.company_strength.try(:range)) : "Not Available"
+
+:javascript
+  function addAttachmentToLead(id){
+    $("#AddLeadAttachmentLead .modal-body").html("<img src='/assets/ajax-loader2.gif'/>");
+    $.ajax({
+      url: "/add_attchment_to_lead",
+      data: {id: id},
+      success: function(data){ 
+        alert("Success.");
+        $("#AddLeadAttachmentLead .modal-body").html(data);
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        alert('Got an error while changing priority.');
+      }
+    });
+  }
+

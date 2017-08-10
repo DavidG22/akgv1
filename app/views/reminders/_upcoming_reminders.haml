@@ -1,0 +1,19 @@
+- if @upcoming_reminders.present?
+  - @upcoming_reminders.each do |reminder|
+    #recent_reminders{:style => "border-bottom:1px solid #0099cb;margin-bottom: 10px;"}
+      %p
+        Title: 
+        %b
+          = reminder.title
+      %p
+        Description: 
+        = reminder.description
+      %p
+        Created date: 
+        = reminder.created_at.strftime("%b %d, %Y")
+      %p
+        Due date: 
+        = reminder.reminder_date.strftime("%b %d, %Y")
+- else
+  %div
+    No reminders found

@@ -1,0 +1,84 @@
+.container
+  .white-sticky-header.fixed-in-app-header{style: "padding-top: 22px;padding-left: 33px;"}
+    %span{style: "margin-top:5px"}  
+      %span.navigation_sec
+        %a{href: "/leads"}
+          Leads
+        ="/"
+      %span.curr_page_name
+        Getting Started
+.getting_started_page
+  .getting_started_sec.col-md-12
+    .getting_started_banner
+      .col-md-2
+      .col-md-3.bo_intro
+        %div  
+          %b
+            Hi there, I'm Bo!
+            %br
+            I will be with you all along.
+      .col-md-7.bo_desc
+        %p Welcome to Wakeupsales. It's time Streamline Your Sales Pipeline
+        %p & Team Collaboration! 
+        %p{style:"margin-top: 10px;"} I've put together a few shortcuts to help you get started.
+      .cb
+  .cb
+  .getting_started_container.col-md-12
+    .getting_started_header
+      %h1
+        Getting Started with WakeUpSales
+      %a.go_to_dashboard{href:"/dashboard"} Go To Dashboard
+      .cb
+    .getting_started_wrapper
+      .top_sec  
+        .col-md-4
+          .add_lead
+            .get_start
+            =link_to "#dealModal", "data-toggle" => "modal", "onclick" => "$('#lead_referrer').val('Header');$('#new_deal')[0].reset();$('.error').html('');$('#deal_first_name').attr('disabled', false);" do
+              Add a Lead
+            .hz_br
+            .desc
+              Leads are the sales opportunities you've identified through one of your contacts.
+        .col-md-4
+          .add_task
+            .get_start
+            =link_to "#taskModal", "data-toggle" => "modal", "onclick" => "$('#task_referrer').val('Header');$('#task_notify_email').val(1);$('#task_form')[0].reset();$('#email_err').html('');$('#puppy_gooddog').prop('checked', true);$('.deal_list').show();$('.contact_firstname_div').hide();$('#check_deal_show').val('false');$('#deal_title_task').removeAttr('disabled');$('#deal_title_task').prop('required','true');$('#clicked_button_ref').val('headermenu');reset_recurring_option();reset_event();$('.assign_deal_label').removeClass('control-lbl-add-txt');" do
+              Create a Task
+            .hz_br
+            .desc
+              Tasks are the activities for a contact or deal.
+        .col-md-4
+          .profile_setting
+            .profile_header
+              Personalize settings
+            .get_start
+            %a{href:"/profile"}
+              Timezone & Profile Settings
+            .hz_br
+            .desc
+              Personalize your CRM account by setting your country locale, timezone, language and personal details.
+        .cb
+      .bottom_sec
+        .col-md-12.bottom_container
+          .bottom_header
+            Administrator Setup
+          .bottom_wrapper  
+            .col-md-6.sec_1
+              .invite_user
+                .get_start
+                =link_to "#inviteuserModal","data-toggle" => "modal", "onclick" => "$('#user_invite_form')[0].reset();$('.show-alert').hide();$('#email_err_usr').html('');" do
+                  Invite a Person
+                .hz_br
+                .desc
+                  Start building your sales team.
+            .col-md-6
+              .settings
+                .get_start
+                %a{href:"/settings"}
+                  Settings
+                .hz_br
+                .desc
+                  Customize the CRM to your needs.
+            .cb
+        .cb
+  .cb

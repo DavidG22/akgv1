@@ -1,0 +1,39 @@
+.empty_list_container
+  - if request.fullpath.include? "leads"  
+    %img{src:"/assets/new-ui/lead_empty_banner.png"}
+    %br
+    =link_to "#dealModal", "data-toggle" => "modal", "onclick" => "$('#lead_referrer').val('Header');$('#new_deal')[0].reset();$('.error').html('');$('#deal_first_name').attr('disabled', false);" do
+      %span.pls + 
+      Add Lead
+  - elsif request.fullpath.include? "tasks"
+    %img{src:"/assets/new-ui/task_empty_banner.png"}
+    %br
+    =link_to "#taskModal", "data-toggle" => "modal", "onclick" => "$('#task_referrer').val('Header');$('#task_notify_email').val(1);$('#task_form')[0].reset();$('#email_err').html('');$('#puppy_gooddog').prop('checked', true);$('.deal_list').show();$('.contact_firstname_div').hide();$('#check_deal_show').val('false');$('#deal_title_task').removeAttr('disabled');$('#deal_title_task').prop('required','true');$('#clicked_button_ref').val('headermenu');reset_recurring_option();reset_event();$('.assign_deal_label').removeClass('control-lbl-add-txt');" do
+      %span.pls + 
+      Add Task
+  - elsif request.fullpath.include? "contacts"
+    %img{src:"/assets/new-ui/contact_empty_banner.png"}
+    %br
+    =link_to "#contactModal", "data-toggle" => "modal", "onclick" => "$('#new-contact')[0].reset();$('#email_err_i').html('');$('#company_added_info_div').css('display','none');display_company_div('hide')" do
+      %span.pls + 
+      Add Contact
+  - elsif request.fullpath.include? "invoice"
+    %img{src:"/assets/new-ui/invoice_empty_banner.png"}
+    %br
+    %a{href: "/invoice/create"}
+      %span.pls + 
+      Add Invoice
+  - elsif request.fullpath.include? "jobs"
+    %img{src:"/assets/new-ui/job_empty_banner.png"}
+    %br
+    %a{href:"/projects/#{@project.id}/jobs/new"}
+      %span.pls + 
+      Add Job
+  - elsif request.fullpath.include? "projects"
+    %img{src:"/assets/new-ui/project_empty_banner.png"}
+    %br
+    =link_to "javascript:void(0)", "data-toggle" => "modal", "onclick" => "$('#projectModal').modal('show');$('#link_lead_no').prop('checked',true);$('#lead_section').hide();$('#project_individual_contact_id').removeAttr('required');$('#project_deal_id').removeAttr('required');" do
+      %span.pls + 
+      Add Project
+
+

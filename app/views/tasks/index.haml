@@ -1,0 +1,174 @@
+:css
+  #show_main ul li a{padding-left:10px;}
+:javascript
+  //alert('called')
+  $.removeCookie("task_assigned_to");
+  $.removeCookie("task_year");
+  $.removeCookie("task_quarter");  
+  //alert("#{params[:t_type].present?}")
+   if("#{params[:t_type].present?}" != ""){
+      history.replaceState({}, '', '/tasks');  
+      $.removeCookie("t_type");
+   }
+  function delete_task(id, tab_name, recurring){
+    if(confirm("Do you want to delete the task?")){
+        delete_all=false
+        if(recurring == "true")
+          delete_all=confirm("Do you want to delete all recurring tasks?");
+        $.ajax({
+        type: "DELETE",
+        url: "/tasks/"+id,
+        dataType: 'json',
+        data: {delete_all_task: delete_all},
+        async: false,
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#task_loader").hide();
+          $(document).trigger("add-alerts", [{'message': "Task has been deleted successfully." ,'priority': 'success'}]);
+          var task_tab = tab_name.split('Task')[0];
+          load_task_tabs(task_tab, true); 
+        }
+      });
+    }
+  }
+  
+  
+=hidden_field_tag 'hdntasks', 'mytask'
+- if !@current_organization.tasks.present?
+  = render :partial => "shared/show_empty_banner"
+- else    
+  .container.task_page
+    .row
+      .top-task-bar.task-white-bar.fixed-in-app-header
+        .tasks-tabs.fl
+          %ul{style:"margin-bottom:0"}
+            =render partial: "task_tab_data"
+          .cb
+        .navbar-right{style: "margin-top: 2px;"}
+          /- if current_user.is_admin? || current_user.is_super_admin?
+          .btn-group
+            %span#show_main
+              .btn-group
+                %span.dropdown-toggle.f_menu{"data-toggle" => "dropdown", type: "button",onclick: "reser_all_submenu();", title: "Filter"}
+                  %span.cwkp-sprite.filter
+                  
+                %ul.dropdown-menu.show_menu{role: "menu"}
+                  %li.arrow_top{style: "margin-left:108px;z-index:99"}
+                  %li.dropdown-submenu
+                    %a{href: "javascript:void(0)","data-toggle"=>"dropdown",onclick: "show_hide_submenu('deal_type');"} Deal Type
+                    #dtype{style: "display: none;position:absolute;left:145px;top:-11px;"}
+
+                      .arrow_right.deal_arw{style: "display:none;left:-169px;"}
+                      %ul#cre_by_app.dropdown-menu{style: "height:200px;overflow-y:scroll;overflow-x:hidden;display:inline-block;position:relative;left:-294px;top:0px;"}
+                        - current_user.organization.deal_statuses.order("name").each do |dtype|
+                          %li
+                            %a{href: "javascript:void(0)",onclick: "check_radio_button(#{dtype.id},'deal_type')",class: "taskFilterSelectDropdow"}
+                              %input{id:"deal_type_#{dtype.id}", class: "deal_by_c",type: "radio", value: "#{dtype.id}",d_type: "#{dtype.name}",style: "cursor:pointer;display:inline-block;vertical-align: middle;margin-top: 0;",name: "deal_type"}
+                                - dl_type = dtype.name
+                                - if dl_type.length > 12
+                                  %span{title: dl_type}
+                                    =dl_type.truncate(15)
+                                - else
+                                  = dl_type
+                          %li.divider
+                  %li.divider
+                  %li.dropdown-submenu
+                    %a{href: "javascript:void(0)","data-toggle"=>"dropdown",onclick: "show_hide_submenu('assigned');"} Assigned To
+                    #asg{style: "display: none;position: absolute;left:145px;top:-11px;"}
+                      .arrow_right.asg_arw{style: "display:none;left:-169px;"}
+                      %ul.dropdown-menu{style: "height:200px;overflow-y:scroll;overflow-x:hidden;display:inline-block;position:relative;left:-294px;top:0px;"}
+                        - all_org_users.each do |assg_by|
+                          %li
+                            %a{href: "javascript:void(0)",onclick: "check_radio_button(#{assg_by.id},'assigned')",class: "taskFilterSelectDropdow"}
+                              %input{id:"assg_by_#{assg_by.id}", class: "asg_by_c",type: "radio", value: "#{assg_by.id}",a_name: "#{assg_by.full_name}",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "assg_by"}
+                                - asn_usr = assg_by.full_name.present? ? assg_by.full_name : assg_by.email.split("@")[0]
+                                - if asn_usr.length > 13
+                                  %span{title: asn_usr}
+                                    =asn_usr.truncate(13)
+                                - else
+                                  = asn_usr
+                          %li.divider
+                  %li.divider
+                  %li.dropdown-submenu
+                    %a{href: "javascript:void(0)","data-toggle"=>"dropdown",onclick: "show_hide_submenu('task_type');"} Task Type
+                    #tsk{style: "display: none;position:absolute;left:145px;top:-11px;"}
+                      .arrow_right.tsk_arw{style: "display:none;left:-169px;"}
+                      %ul#cre_by_app.dropdown-menu{style: "height:200px;overflow-y:scroll;overflow-x:hidden;display:inline-block;position:relative;left:-299px;top:0px;"}
+                        - current_user.organization.task_types.order("name").each do |tsk_type|
+                          %li
+                            %a{href: "javascript:void(0)",onclick: "check_radio_button(#{tsk_type.id},'task_type')",class: "taskFilterSelectDropdow"}
+                              %input{id:"task_type_#{tsk_type.id}", class: "task_by_c",type: "radio", value: "#{tsk_type.id}",t_type: "#{tsk_type.name}",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "task_type"}
+                                =tsk_type.name
+                          %li.divider       
+                  %li.divider
+                  %li.date_show.dropdown-submenu{onclick: "show_hide_submenu('date');"}
+                    %a{href: "javascript:void(0)","data-toggle"=>"dropdown"} Any Time
+                    #dt{style: "display: none;position: absolute;left:145px;top:-11px;"}
+                      .arrow_right.date_arw{style: "display:none;left:-169px;"}
+                      %ul.dropdown-menu{style: "display:inline-block;position:relative;left:-298px;top:0px;"}
+                        %li
+                          %a{href: "javascript:void(0)",onclick: "check_radio_button('past_week','date')" ,class: "taskFilterSelectDropdow"}  
+                            %input{id:"past_week", class: "date_c",type: "radio", value: "Past Week",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "date"}
+                            Past Week
+                        %li.divider
+                        %li
+                          %a{href: "javascript:void(0)",onclick: "check_radio_button('past_two_weeks','date')",class: "taskFilterSelectDropdow"}  
+                            %input{id:"past_two_weeks", class: "date_c",type: "radio", value: "Past Two Weeks",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "date"}
+                            Past Two Weeks
+                        %li.divider
+                        %li
+                          %a{href: "javascript:void(0)",onclick: "check_radio_button('past_three_weeks','date')",class: "taskFilterSelectDropdow"}  
+                            %input{id:"past_three_weeks", class: "date_c",type: "radio", value: "Past Three Weeks",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "date"}
+                            Past Three Weeks
+                        %li.divider
+                        %li
+                          %a{href: "javascript:void(0)",onclick: "check_radio_button('past_month','date')",class: "taskFilterSelectDropdow"}  
+                            %input{id:"past_month", class: "date_c",type: "radio", value: "Past Month",style: "cursor:pointer;",name: "date"}
+                            Past Month
+                        %li.divider
+                        %li
+                          %a{href: "javascript:void(0)",onclick: "check_radio_button('past_year','date')",class: "taskFilterSelectDropdow"}  
+                            %input{id:"past_year", class: "date_c",type: "radio", value: "Past Year",style: "cursor:pointer;display: inline-block;vertical-align: middle;margin-top: 0;",name: "date"}
+                            Past Year
+                        %li.divider            
+                             
+              
+            /%a#taskFilterNow{:href=>"javascript:",rel: "tooltip", title: "Click to Filter", onclick: "add_css_filter('filter');",:style=> "cursor:pointer;text-decoration:none;padding: 2px;"}
+            /  %button.btn.btn-default#btn_task_filter{type: "button"}
+            /    %span.glyphicon.glyphicon-filter
+            /    Filter 
+            %a{"data-toggle" => "modal", href: "#taskModal", onclick: "$('#task_form')[0].reset();$('#clicked_button_ref').val(check_active_tab());$('#email_err').html('');",rel: "tooltip", title: "Add a task"}
+              %span.p5       
+                %span.cwkp-sprite.add-task             
+          .btn-group
+            = link_to tasks_path(format: "csv"), :id => "task_export_btn", :style=> "text-decoration:none;cursor: default;", title:"Export to CSV" do
+              %span{type: "button", style: "border-radius:4px 0 0 4px;outline:none;"}
+                %span.cwkp-sprite.export
+            %a.list_view_btn{"data-toggle" => "tab", href: "#all", onclick: "add_css('all');", :style=> "text-decoration:none;display:none;", rel:"tooltip", title:"List View"}
+              %span.active#btn_task_all
+                %span.cwkp-sprite.list-view
+            %a.calendar_view_btn{"data-toggle" => "tab", href: "#calendarView", onclick: "$('#calendar_filter_type').val('');add_css('calendar');", rel:"tooltip", title:"Calender View", style:"margin-left:-4px"}
+              %span#btn_task_calender
+                %span.cwkp-sprite.calendar-view
+      
+      .cb
+      .col-md-12
+        #alert-msg.alert.fade.in.alert-danger{style: "display:none;"}
+          %button.close{onclick: "$('#alert-msg').hide();$('#task_loader').hide();"} x
+          #msg_div
+        #filter_msg.col-md-offset-0{style: "text-align: center;display:none"}
+        /  Filtered 4 deals assigned to fro ty from 290 new deals.
+        /  =link_to "RESET", "/tasks", class: "btn btn-xs btn-warning"
+        #task_header
+          = render :partial => "task_header", :object => @tasks
+  =render :partial => "tasks/task_js"
+
+

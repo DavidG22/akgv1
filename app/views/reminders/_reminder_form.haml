@@ -1,0 +1,39 @@
+.row
+  .form-group.col-md-4
+    = f.label :title
+  .form-group.col-md-6
+    = f.text_field :title, :class=> "form-control", :placeholder => "Reminder Task", :required => true
+.row
+  .form-group.col-md-4
+    = f.label :description
+  .form-group.col-md-6
+    = f.text_area :description, :class=> "form-control", :placeholder => "Reminder Description", :required => true, :rows => "5"
+.row
+  .form-group.col-md-4
+    = f.label :reminder_date, "Date"
+  .form-group.col-md-6
+    = f.text_field :reminder_date, autocomplete: "off",:class=> "form-control", :placeholder => "Reminder date", onchange: "change_reminder_days();"
+.row
+  .form-group.col-md-12
+    = f.label :reminder_type
+    %br
+    - ReminderType.all.each do |rt|
+      = f.check_box :reminder_type, {:class => "reminder_types", :checked => rt.name == "None"}, rt.id
+      = rt.name
+    = f.hidden_field :reminder_type_id, :value =>"5"
+.row
+  .form-group.col-md-4
+    = f.label :deal
+  .form-group.col-md-6
+    = f.hidden_field :deal_id,:id=>"dfield"
+    = f.text_field :deal, :class=>"reminder_deal_typeahead", "data-provide"=> "typeahead", :placeholder => "Lead"
+.row
+  .form-group.col-md-4
+    = f.label :email_ids
+  .form-group.col-md-6
+    = f.text_field :email_ids,:class=> "form-control", :placeholder => "Comma separated email ids"
+.row
+  .form-group.col-md-4
+    = f.label :send_before
+  .form-group.col-md-6
+    = f.select :send_before, ["before 1 day", "before 2 days"],:class=> "form-control"

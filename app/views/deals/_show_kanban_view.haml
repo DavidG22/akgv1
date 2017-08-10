@@ -1,0 +1,221 @@
+/Header of new ui of Lead Kanban View
+.top-kanban-bar.white-sticky-header.fixed-in-app-header{style:"padding-bottom: 7px;"}
+  %ul#hide_main.fl
+    %li
+      %a{href: "javascript:void(0)", title: "Tab Settings", onclick: "show_modal();get_kanban_stages()"}
+        %span.add-stage +
+        %span
+          Add Stage
+
+  .fr
+    %span
+      %a#additional_links{"data-toggle" => "modal", href: "#BulkLeadModal", rel: "popup", title: "Bulk lead upload"}
+        %span{type: "button",rel: "tooltip", title: "Bulk Lead Upload" } 
+          %span.cwkp-sprite.bulk-lead-upload
+    %span
+      %a#leads_export_btn{"data-toggle" => "modal", href: leads_path(format: "csv"), style: "text-decoration:none;"}
+        %span.cwkp-sprite.export-to-csv.p5{type: "button",rel: "tooltip", title: "Export to CSV" }
+    %span 
+      %a{href: "javascript:void(0)", onclick: "show_list_view();reset_all_deal_filter();reset_filter_val();highlight_leads()", title: "Show List view"}
+        %span.link_to_list_view.fr.cwkp-sprite.kanbab-icon{style: "font-size: 18px;margin: 4px 10px 10px 0px;"}
+      /%a{href: "javascript:void(0)", onclick: "show_funnel_chart();", title: "Show funnel chart"}
+      /  .link_to_list_view.fr.glyphicon.glyphicon-stats{style: "font-size: 18px;margin: 5px 15px 0;"}
+  .cb
+.kanban_view
+  = render partial: "get_kanban_view"
+#dealmoveModal.modal.fade.margin-top-20{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog.new_form_layout.no-icon
+    .modal-content
+      -@deal= DealMove.new
+      = form_for(@deal,:url=>move_lead_path,  :remote => true,:html=>{:class => "form",:method=>"post",:id=>"move_deal_popup"}) do |f|
+        =hidden_field_tag :new_initr_id
+        =hidden_field_tag :new_assign_id
+        =hidden_field_tag :mass_deal_ids
+        .modal-header
+          %span.close x
+          %h4.modal-title Move Lead
+        .modal-body
+          %input{:type=>"hidden",:name=>"deal_id",:value=>"",:id=>"deal_id_move"}
+          %input{:type=>"hidden",:name=>"flag_id",:value=>"0",:id=>"flag_id"}
+          %div{id:"chk_radio_act",class: "error",style: "display:none;margin-top:-14px;"}
+
+          .cb
+            -dealstatuses = current_user.organization.deal_statuses
+            .form-group{style:"margin-top:0;"}
+              - dealstatuses.each do |ds|
+                .modal-radio{:class => "show_all deal_s_#{ds.id}"}
+                  =f.radio_button :deal_status ,ds.id,:required=>true,:onclick => "change_assign_drop('#{ds.name}');"
+                  %label{:for => "deal_move_deal_status_#{ds.id}"}
+                    %span
+                    =ds.name
+
+
+          .cb#finish_working{style: "display:none"}
+
+            .col-md-4.p0
+              .form-group
+                =f.check_box :is_current ,:class=> ""
+                Finished working
+          .cb
+            .form-group#mv_dl_asign
+              %label{:for => "assigned_to_user"} Assign User
+              .input-group  
+                = select_tag "assigned_to_user", options_for_select(all_org_users.collect {|c| [ c.full_name.present? ? c.full_name : c.email, c.id ]}), :prompt => '- Users -',:class=>"form-control",:required=>true
+          .cb
+            .form-group
+              %label{:for => "deal_move_note"} Note
+              .input-group    
+                =f.text_area :note,:html=>{:maxlength=> "80"}, :style=> "resize: none;height:100px;",:rows=>"3" , :class=>"form-control"
+              %i.bar
+          .cb
+          .form-layout-footer
+            %button.btn.btn-info{type: "submit", "data-disable-with" => "Saving...", onclick: "return chk_radiobtn();"} Save
+            %a.btn.btn-default{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+              Cancel
+
+= render :partial => "tab_settings_kanban"
+:javascript
+
+  $('#dealmoveModal').on('show.bs.modal', function (e) {
+    $("#deal_move_note").val("")
+  });
+  $('#move_deal_popup').bind('ajax:complete', function(evt, data, status, xhr){
+    //alert('complete')
+    $("#dealmoveModal").modal('hide');    
+    show_kanban_view();
+  });
+  function change_assign_drop(obj)
+  {
+    //alert(obj);
+    var ini_id = $("#new_initr_id").val();
+    var assn_id = $("#new_assign_id").val();
+    $("#flag_id").val(1);
+    if(obj == "Won" || obj == "Lost" ){
+      $('#assigned_to_user').removeAttr('required');
+      $('#mv_dl_asign').fadeOut("slow");
+    }else
+    {
+      $('#assigned_to_user').prop('required',true);
+      $('#mv_dl_asign').fadeIn("slow");
+    }
+    if(obj == "Junk"){$('#assigned_to_user').val(ini_id);}else{ $('#assigned_to_user').val(assn_id); }
+    if($("#flag_id").val() == "1")
+    {
+      $("#chk_radio_act").hide();
+    }
+    if(obj == "Not Qualified" || obj == "Lost" || obj == "Junk"){
+     $('#deal_move_note').prop('required',true);
+     }else{$('#deal_move_note').prop('required',false);}
+  }
+  function chk_radiobtn()
+  {
+    var chak_flag = $("#flag_id").val();
+    if(chak_flag == "0")
+    {
+      $("#chk_radio_act").show();
+      $("#chk_radio_act").html('Please select an option from below!')
+      return false;
+    }
+    
+  }
+  
+  function deleteLead(val){
+    if(confirm("Are you sure?")){
+      var id = $(val).data("id");
+      $.ajax({
+        url: '/delete_lead/'+id,
+        type: 'DELETE',
+        success: function(res) {
+          //$("#status_"+id).remove();
+          show_kanban_view();
+        }
+      });
+    }
+    else{
+      return false;
+    }
+  }
+
+  // Implement drag and drop functionality
+  $( function() {
+    $( ".draggable_lead" ).draggable({helper: "clone",
+      containment: "div.kanban_view",appendTo: 'body',
+      start: function(e, ui)
+        {
+          $(ui.helper).css({"border":"1px solid #999","box-shadow":"0 0 10px #777","-ms-transform":"rotate(7deg)","-webkit-transform":"rotate(7deg)","transform":"rotate(7deg)","background":"#f1f1f1"});
+        }
+
+    
+    });
+    $( ".droppable_stage" ).droppable({
+      drop: function( event, ui ) {
+        //retrieve the lead_id and status name from draggable lead and dropable status
+        lead_id = ui.draggable.attr("name");
+        status = $(this).attr("name");
+        var cur_lead;
+        cur_lead = "status_"+lead_id.toString();
+        x = $("#"+cur_lead).closest(".droppable_stage").attr("name");
+        if(x == status){
+          $(".draggable_lead").css({"z-index":"0","cursor":"default"});
+          $( ".droppable_stage .status_content" ).css({"border":"1px solid #e5e5e5"});
+          //alert("Opps! Lead has already the dropped Status");
+          return false;
+        }
+        $('#task_loader,.fixed_loader').show();
+        $.ajax( {
+          type: "POST",
+          url: "/change_lead_status",
+          data: {lead_id: lead_id, status: status},
+          success: function(result) {
+            $("#view_content").html(result);
+            $('#task_loader,.fixed_loader').hide();
+            //$(document).trigger("add-alerts", [{'message': "" ,'priority': 'success'}]);
+            //$(".alert.alert-success ul").html("").html("Lead has been moved successfully.");
+            show_alert_message("success","Lead has been moved successfully.");
+          },
+          error: function(res) {
+              alert("Some error has been occured.");
+              $('#task_loader,.fixed_loader').hide();
+          }
+        });
+      }
+    });
+  } );
+  // Display movable Lead as the top of all other Lead
+  $( ".draggable_lead" ).mousedown(function(){
+    $(this).css({"z-index":"1","cursor":"crosshair"});
+  });
+  $( ".draggable_lead" ).click(function(){
+    $(".draggable_lead").css({"z-index":"0"});
+    $(this).css({"z-index":"1","cursor":"crosshair"});
+  });
+  $(".draggable_lead").bind('drag',function( event ){
+    $( ".droppable_stage .status_content" ).css({"border":"1px solid #0099CB"});
+    $( this ).closest(".status_content").css({"border":"1px solid #e5e5e5"});
+  });
+
+  function highlight_leads(){
+    $("#leads_kanban_view").removeClass("activ_menu");
+    $("#leads").addClass("activ_menu");
+    $("#leads .lds").css({"background-position":"5px -21px","color":"#000"});
+  }
+
+  function get_kanban_stages(){
+    $('#task_loader,.fixed_loader').show();
+    $.ajax( {
+      type: "POST",
+      url: "/get_kanban_stages",
+      success: function(result) {
+        $("#dealsettingKanbanModal .modal-body").html(result);
+        $('#task_loader,.fixed_loader').hide();
+      },
+      error: function(res) {
+          alert("Some error has been occured.");
+          $('#task_loader,.fixed_loader').hide();
+      }
+    });
+  }
+  
+  function show_modal(){
+    $('#dealsettingKanbanModal').modal('show');
+  }

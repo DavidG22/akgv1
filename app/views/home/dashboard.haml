@@ -1,0 +1,495 @@
+:css
+  .right-container{
+    padding-top: 75px;
+  }
+.dashboard-page
+  .col-md-9
+    .nqwl-percentage.con-box1
+      .col-md-3
+        .box{:title => "New Leads"}
+          %ul
+            %li
+              - new_chart = @new_deals != 0 && @total_leads != 0
+              %span.chart.new-chart.load-percent{"data-percent" => "#{new_chart ? (@new_deals.to_f / @total_leads.to_f * 100.0).round : 0}"}
+                %span.percent
+                  = new_chart ? (@new_deals.to_f / @total_leads.to_f * 100.0).round : 0
+              %h5
+                New
+                %span
+                  = @new_deals
+      .col-md-3{:title => "Qualified Leads"}
+        .box
+          %ul
+            %li
+              - qualify_chart = @qualified_deals != 0 && @total_leads != 0
+              %span.chart.qualified-chart.load-percent{"data-percent" => "#{qualify_chart ? (@qualified_deals.to_f / @total_leads.to_f * 100.0).round : 0}"}
+                %span.percent
+                  = qualify_chart ? (@qualified_deals.to_f / @total_leads.to_f * 100.0).round : 0
+              %h5
+                Qualified
+                %span
+                  = @qualified_deals
+      .col-md-3{:title => "Won Leads"}
+        .box
+          %ul
+            %li
+              - won_chart = @won_deals != 0 && @total_leads != 0
+              %span.chart.won-chart.load-percent{"data-percent" => "#{won_chart ? (@won_deals.to_f / @total_leads.to_f * 100.0).round : 0}"}
+                %span.percent
+                  = won_chart ? (@won_deals.to_f / @total_leads.to_f * 100.0).round : 0
+              %h5
+                Won
+                %span
+                  = @won_deals
+      .col-md-3{:title => "Lost Leads"}
+        .box
+          %ul
+            %li
+              - lost_chart = @lost_deals != 0 && @total_leads != 0
+              %span.chart.lost-chart.load-percent{"data-percent" => "#{lost_chart ? (@lost_deals.to_f / @total_leads.to_f * 100.0).round : 0}"}
+                %span.percent
+                  = lost_chart ? (@lost_deals.to_f / @total_leads.to_f * 100.0).round : 0
+              %h5
+                Lost
+                %span
+                  = @lost_deals
+      .clearfix
+    .task-list
+      %h6
+        %span.cwkp-sprite.tsk-list
+        Task list
+      .tasklist-btn
+        %span.all
+          %a{href: "javascript:void(0)", onclick: "fetch_tasks('all')"}
+            %i.fa.fa-list{"aria-hidden" => "true"}
+            All
+        %span.today.activeTaskTab
+          %a{href: "javascript:void(0)", onclick: "fetch_tasks('today')"}
+            %i.fa.fa-check-circle-o{"aria-hidden" => "true"}
+            Today
+        %span.overdue
+          %a{href: "javascript:void(0)", onclick: "fetch_tasks('overdue')"}
+            %i.fa.fa-exclamation-triangle{"aria-hidden" => "true"}
+            Overdue
+        %span.upcoming
+          %a{href: "javascript:void(0)", onclick: "fetch_tasks('upcoming')"}
+            %i.fa.fa-paw{"aria-hidden" => "true"}
+            Upcoming
+        %a.learn-more{:href => tasks_path} View Task Listing
+      #fetch_tasks_list.box{:style => "height:65%;overflow-y:auto;"}
+      /  = render :partial => "tasks_list"
+        
+    .usage_summary
+      .col-md-8.usage
+        .box
+          %h6 
+            %span.cwkp-sprite.usage
+            Usage
+          .frame
+            .glintcontent{:title => "Usage"}
+              %svg{:id=>"svg"}
+      .col-md-4.summary
+        %h6
+          %span.cwkp-sprite.last-lead-summary
+          Summary-last 3 months
+        .box
+          %ul
+            %li
+              %span.circle.cwkp-sprite.total-call
+              %strong
+                Total calls
+                %span                  
+                  = @task_call_count
+              %div
+                %small
+                  - if @task_call_count > 0
+                    = link_to tasks_url(:type=>"all", :t_type=>@current_organization.task_types.where(:name => "Call").first.id), :style=>"color:#78808A", :target => "_blank" do
+                      Read
+                      %i.fa.fa-caret-right{"aria-hidden" => "true"}
+                .clearfix
+        .box
+          %ul
+            %li
+              %span.circle.cwkp-sprite.total-appoirtment
+              %strong
+                Total Appointments
+                %span
+                  - task_apointment_count = @current_organization.tasks.last_three_months.task_list(current_user,nil,nil,nil,'Appointment').count
+                  = task_apointment_count
+              %div
+                %small
+                  - if task_apointment_count > 0
+                    = link_to tasks_url(:type=>"all", :t_type=>@current_organization.task_types.where(:name => "Appointment").first.id), :style=>"color:#78808A", :target => "_blank" do
+                      Read
+                      %i.fa.fa-caret-right{"aria-hidden" => "true"}
+                .clearfix
+        .box
+          %ul
+            %li
+              %span.circle.cwkp-sprite.total-ltn
+              %strong
+                Total Leads to nurture
+                %span
+                  = new_deals_three_month
+              %div
+                %small
+                  - if new_deals_three_month > 0
+                    /= link_to leads_url(:type=>"incoming", :daterange => "3m"), :onclick => "document.cookie='dt_range=3m';",:style=>"color:#78808A" do
+                    = link_to leads_url(:type=>"new", :three_months=>true), :onclick => "document.cookie='dt_range=3m';",:style=>"color:#78808A", :target => "_blank" do
+                      Read
+                      %i.fa.fa-caret-right{"aria-hidden" => "true"}
+                .clearfix
+        .box
+          %ul
+            %li
+              %span.circle.cwkp-sprite.total-llc
+              %strong
+                Last lead close
+                %span
+                  - if @last_deal.present?
+                    = @last_close_deal_date
+                  - else
+                    Yet to close
+              %div
+                %small{title: "#{@last_deal.present? ? @last_closed_user : ''}"}
+                  - if @last_deal.present?
+                    BY:
+                    = @last_closed_user.truncate(12)
+                  - if @last_deal.present?
+                    = link_to leads_url(:type=>"won"), :onclick => "",:style=>"color:#78808A", :target => "_blank" do
+                      Read
+                      %i.fa.fa-caret-right{"aria-hidden" => "true"}
+                .clearfix
+  .col-md-3{:style=>"padding-left:0"}
+    .total-profile-no
+      %div{:title => "Won Leads"}
+        - won_chart = @won_deals != 0 && @total_leads != 0
+        %span.right-won-chart.load-percent{"data-percent" => "#{won_chart ? (@won_deals.to_f / @total_leads.to_f * 100.0).round : 0}"}
+        %span.percent.total_percent
+          = won_chart ? (@won_deals.to_f / @total_leads.to_f * 100.0).round : 0
+      %div
+        %span.count-bx
+          = @total_leads
+          %small
+            Total
+        %span.count-bx
+          = @won_deals
+          %small.won
+            Won
+        .cb
+    / .upcoming-task-sechedule
+    /   %strong
+    /     = "Upcoming task(" + @upcoming_tasks.count.to_s + ")"
+    /   - if @upcoming_tasks.present?
+    /     %ul
+    /       - @upcoming_tasks.each do |task|
+    /         %li
+    /           %span.date
+    /             = task.due_date.strftime("%b")
+    /             %br
+    /             = task.due_date.strftime("%d")
+    /           %span.user-lead-name
+    /             = truncate(task.title, :length => 20, :ommission => "...")
+    /     %div.text-right
+    /       - if @upcoming_tasks.count == 5
+    /         = link_to "View More", "/tasks?type=upcoming"
+    /   - else
+    /     %ul
+    /       %li
+    /         %p
+    /           No upcoming tasks found
+    .upcoming-task-sechedule
+      %strong
+        Recent Leads
+      %ul
+        - four_weeks_leads = @current_organization.deals.order("created_at desc").limit(7)
+        - if four_weeks_leads.present?
+          - four_weeks_leads.each do |lead|
+            %li
+              %span.date
+                %p{style: "font-size:10px;"}
+                  = lead.created_at.strftime("%b")
+                %br
+                %p{style: "font-weight:bold;font-size:16px;color:#333"}
+                  = lead.created_at.strftime("%d")
+              %span.user-lead-name
+                -lname = truncate(lead.title, :length => 24, :ommission => "...")
+                = link_to lname, "/leads/#{lead.id}", :target => "_blank", title: lead.title
+          %div.text-right
+            - if four_weeks_leads.count == 7
+              = link_to "View More", "/leads", style: "font-size:12px;color:rgb(34, 127, 248)"
+        - else
+          %li
+            %p
+              No leads found
+  .clearfix
+-if user_signed_in?
+  #editTaskModal.modal.fade.cstm-material-modal{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+    .modal-dialog.cstm-material-modal
+      .modal-content
+        #edit_task_form_content
+          /- @task=Task.new
+          /=render :partial => "tasks/task_form", :object => @task, :title=> :""
+
+:javascript
+  $(function() {    
+    fetch_tasks('today');
+    /* New deals chat */
+    $('.new-chart').easyPieChart({
+      easing: 'easeOutBounce',
+      onStep: function(from, to, percent) {
+        $(this.el).find('.percent').text("#{@new_deals != 0 && @total_leads != 0 ? (@new_deals.to_f / @total_leads.to_f * 100.0).round : 0}");
+      },
+      lineWidth: 5,
+      barColor: "#5DCEF1"
+    });
+    var chart = window.chart = $('.new-chart').data('easyPieChart');
+    $('.js_update').on('click', function() {
+      chart.update(Math.random()*200-100);
+    });
+
+    /* Qualified deals chat */
+    $('.qualified-chart').easyPieChart({
+      easing: 'easeOutBounce',
+      onStep: function(from, to, percent) {
+        $(this.el).find('.percent').text("#{@qualified_deals != 0 && @total_leads != 0 ? (@qualified_deals.to_f / @total_leads.to_f * 100.0).round : 0}");
+      },
+      lineWidth: 5,
+      barColor: "#CBDFB3"
+    });
+    var chart = window.chart = $('.qualified-chart').data('easyPieChart');
+    $('.js_update').on('click', function() {
+      chart.update(Math.random()*200-100);
+    });
+
+    /* Won deals chat */
+    $('.won-chart').easyPieChart({
+      easing: 'easeOutBounce',
+      onStep: function(from, to, percent) {
+        $(this.el).find('.percent').text("#{@won_deals != 0 && @total_leads != 0 ? (@won_deals.to_f / @total_leads.to_f * 100.0).round : 0}");
+      },
+      lineWidth: 5,
+      barColor: "#FBAA2C"
+    });
+    var chart = window.chart = $('.won-chart').data('easyPieChart');
+    $('.js_update').on('click', function() {
+      chart.update(Math.random()*200-100);
+    });
+
+    /* Lost deals chat */
+    $('.lost-chart').easyPieChart({
+      easing: 'easeOutBounce',
+      onStep: function(from, to, percent) {
+        $(this.el).find('.percent').text("#{@lost_deals != 0 && @total_leads != 0 ? (@lost_deals.to_f / @total_leads.to_f * 100.0).round : 0}");
+      },
+      lineWidth: 5,
+      barColor: "#FD8C8F"
+    });
+    var chart = window.chart = $('.lost-chart').data('easyPieChart');
+    $('.js_update').on('click', function() {
+      chart.update(Math.random()*200-100);
+    });
+
+    /* Right side total won deals chat */
+    $('.right-won-chart').easyPieChart({
+      easing: 'easeOutBounce',
+      onStep: function(from, to, percent) {
+        $(this.el).find('.percent').text("#{@won_leads != 0 && @total_leads != 0 ? (@won_leads.to_f / @total_leads.to_f * 100.0).round : 0}");
+      },
+      lineWidth: 5,
+      barColor: "#718AF9",
+      trackColor: "#DCDCDC"
+    });
+    var chart = window.chart = $('.right-won-chart').data('easyPieChart');
+    $('.js_update').on('click', function() {
+      chart.update(Math.random()*200-100);
+    });
+  });
+
+  function fetch_tasks(type){
+    $.ajax({
+      type: "GET",
+      url: "/fetch_tasks",
+      dataType: 'json',
+      data: {task_type: type},
+      async: true,
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data){},
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#fetch_tasks_list").html(data.responseText);
+        $(".tasklist-btn").find("span").removeClass('activeTaskTab');
+        $("."+type).addClass('activeTaskTab');
+      }
+    });
+  }
+
+  function edit_popup(id){
+      $.ajax({
+        type: "POST",
+        url: "/edit_task",
+        dataType: 'json',
+        async: true,
+        data: {task_id: id},
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#edit_task_form_content").html(data.responseText);
+          $("#task_loader").hide();
+        }
+      });
+    }
+
+  function delete_task(id){
+    if(confirm("Do you want to delete the task?")){
+        $.ajax({
+        type: "DELETE",
+        url: "/tasks/"+id,
+        dataType: 'json',
+        async: false,
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#task_loader").hide();
+          $(document).trigger("add-alerts", [{'message': "Task has been deleted successfully." ,'priority': 'success'}]);
+          $("#task_"+id).remove();
+        }
+      });
+    }
+  }
+
+  
+  /***********************************************************/
+  var programmingSkills = [
+    {
+        value: #{@cmpl_tasks_percentage==0 ? 1 : @cmpl_tasks_percentage},
+        label: 'Tasks Completed',
+        color: '#3399FF'
+    },
+    {
+        value: #{@call_percentage==0 ? 1 : @call_percentage},
+        label: 'Call Completed',
+        color: '#FFC575'
+    },
+    {
+        value: #{@total_leads_percentage==0 ? 1 : @total_leads_percentage},
+        label: 'Total Leads',
+        color: '#99CC00'
+    },
+    {
+        value: #{@won_percentage==0 ? 1 : @won_percentage},
+        label: 'Won Leads',
+        color: '#FF3300'
+    },
+    {
+        value: #{@lostdeal_percentage==0 ? 1 : @lostdeal_percentage},
+        label: 'Lost Leads',
+        color: '#944DDB'
+    },
+  ];
+
+  var donutSize = 300;
+  var donut = $('#svg').donut({
+      donutSize: donutSize,
+      center: {
+          x: donutSize / 2,
+          y: donutSize / 2
+      },
+      radius: donutSize * 0.3 / 1,
+      data: programmingSkills
+  });
+
+  donut.startShowAnimation(function(){
+    $('button').attr('disabled', false);
+  });
+
+  function load_summary_section(){
+        $.ajax({
+          type: "POST",
+          url: "/summary",
+          dataType: 'json',
+          async: true,
+          beforeSend: function(){
+            //$("#task_loader").show();
+          },
+          success: function(data)
+          {
+          },
+          error: function(data) {
+            //$("#task_loader").hide();
+          },
+          complete: function(data) {
+            $(".summary_data").html(data.responseText);
+          }
+        });
+
+    }
+
+    function load_header_count(){
+
+        //header_count
+        if($("#show_header_count").val() == 1){
+         $.ajax({
+          type: "POST",
+          url: "/load_header_count_section",
+          async: true,
+          beforeSend: function(){
+            //$("#task_loader").show();
+          },
+          success: function(data)
+          {
+          },
+          error: function(data) {
+            //$("#task_loader").hide();
+          },
+          complete: function(data) {
+            $(".header_user_data").html(data.responseText);
+          }
+        });
+      }
+      //end header count
+  }
+
+  function load_dashboard_task_widget(){    
+    $.ajax({
+      type: "POST",
+      url: "/task_widget_page",
+      dataType: 'json',
+      async: true,
+      beforeSend: function(){
+        //$("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        //$("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#task_header").html(data.responseText);
+      }
+    });
+  }
+
+  function get_activity_data()
+  {
+    //Ajax3.call();
+  }

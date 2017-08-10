@@ -1,0 +1,87 @@
+- if params[:report_type] == "Leads"  
+  - if params[:country_name].present? && params[:priority_type].present?
+    %h3
+      Leads
+    %b
+      Total Leads :
+    = @current_organization.deals.count
+    %br
+    %b
+      - priority = PriorityType.where(name: params[:priority_type]).first
+      - country = Country.find(params[:country_name] )
+      = "Lead > #{params[:priority_type]} > #{country.name} :"
+    = @current_organization.deals.where(priority_type_id: priority.id, country_id: country.id).count
+    %br
+    %b
+      Tasks :
+    - tasks_count = 0
+    - @current_organization.deals.where(priority_type_id: priority.id, country_id: country.id).each do |deal|
+      -tasks_count = tasks_count + deal.tasks.count
+    = tasks_count
+  - elsif params[:priority_type].present?
+    %h3
+      Leads
+    .report_count_box.leads_count
+      %b
+        Total Leads :
+      = @current_organization.deals.count
+      %br
+      %b
+        = "Lead > #{params[:priority_type]}"
+      - priority = PriorityType.where(name: params[:priority_type]).first
+      = @current_organization.deals.where(priority_type_id: priority.id).count
+      %br
+      %b
+        Tasks :
+      - tasks_count = 0
+      - @current_organization.deals.where(priority_type_id: priority.id).each do |deal|
+        -tasks_count = tasks_count + deal.tasks.count
+      = tasks_count
+  -else
+    %h3
+      Leads
+    %span
+      %b Totals Leads :
+    %span.total_lead_count
+      = @current_organization.deals.count
+    %br
+    %span
+      %b Hot :
+    %span.hot_lead_count
+      = @current_organization.deals.where(priority_type_id: 1).count
+    %br
+    %span
+      %b Warm :
+    %span.warm_lead_count
+      = @current_organization.deals.where(priority_type_id: 2).count
+    %br
+    %span
+      %b Cold :
+    %span.cold_lead_count
+      = @current_organization.deals.where(priority_type_id: 3).count
+- if params[:report_type] == "Tasks"  
+  - if params[:date_type] == "Specific Date"
+    - date = Date.strptime(params[:date],"%m-%d-%Y")  
+    = @current_organization.tasks.where(created_at: date.midnight..date.end_of_day).count
+  - elsif params[:date_type] == "Date Range"
+    - first_date = Date.strptime(params[:first_date],"%m-%d-%Y")
+    - sec_date = Date.strptime(params[:sec_date],"%m-%d-%Y")
+    = @current_organization.tasks.where(created_at: first_date.midnight..sec_date.end_of_day).count
+
+- elsif params[:report_type] == "Contacts"
+  - if params[:country].present?
+    - country = Country.find(params[:country])
+    = @current_organization.individual_contacts.where(country_id: params[:country]).count
+  
+- elsif params[:report_type] == "Activities"
+  - if params[:date_type].present? 
+    - if params[:date_type] == "Specific Date"
+      - date = Date.strptime(params[:date],"%m-%d-%Y")
+      = @current_organization.activities.where(created_at: date.midnight..date.end_of_day).count
+    - elsif params[:date_type] == "Date Range"
+      - first_date = Date.strptime(params[:first_date],"%m-%d-%Y")
+      - sec_date = Date.strptime(params[:sec_date],"%m-%d-%Y")
+      = @current_organization.activities.where(created_at: first_date.midnight..sec_date.end_of_day).count
+
+- elsif params[:report_type] == "Users"
+  = @current_organization.users.count

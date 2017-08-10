@@ -1,0 +1,286 @@
+.row{:style=> "margin: 60px 6px 20px 6px;"}
+  / .navbar-left{:style=>"margin:-22px 0;"}
+  /   %h3
+  /     Lead Kanban View
+  .navbar
+    %span#hide_main.fl
+      .btn-group
+        %a#additional_links{"data-toggle" => "modal", href: "#dealModal", onclick: "$('#lead_referrer').val('Lead Kanban View');$('#new_deal')[0].reset();$('.error').html('');", style: "text-decoration:none;"}
+          %button.btn.btn-primary.btn-success.p5{type: "button",rel: "tooltip", title: "Add a Lead" }
+            %span.glyphicon.glyphicon-plus-sign
+            Add a Lead
+        %a#additional_links{"data-toggle" => "modal", href: "#BulkLeadModal", rel: "popup", title: "Bulk lead upload", style: "background-color: white;"}
+          %button.btn.btn-default{type: "button",rel: "tooltip", title: "Bulk Lead Upload" } 
+            %span.glyphicon.glyphicon-import
+            Bulk Lead Upload
+        %a#leads_export_btn{"data-toggle" => "modal", href: leads_path(format: "csv"), style: "text-decoration:none;"}
+          %button.btn.btn-primary.btn-success.p5{type: "button",rel: "tooltip", title: "Export to CSV" }
+            %span.glyphicon.glyphicon-export
+            Export to CSV
+    .fr    
+      %a{href: "javascript:void(0)", onclick: "show_list_view();reset_all_deal_filter();reset_filter_val();", title: "Show List view"}
+        .link_to_list_view.fr.glyphicon.glyphicon-th-list{style: "font-size: 18px;margin: 4px 10px 10px 0px;"}
+      %a{href: "javascript:void(0)", onclick: "show_funnel_chart();", title: "Show funnel chart"}
+        .link_to_list_view.fr.glyphicon.glyphicon-stats{style: "font-size: 18px;margin: 5px 15px 0;"}
+    .cb
+.kanban_view
+  / Lead Status to be displayed
+  / -lead_names = ["New","Qualified", "Quote" ,"Won"] #current_user.organization.deal_labels.map(&:name)
+  / - deal_statuses = current_user.organization.deal_statuses.where("name in (?)",lead_names)
+  - deal_statuses = @current_organization.deal_statuses.order("name") #.limit(5)
+  -if deal_statuses.blank?
+    - deal_statuses = current_user.organization.deal_statuses
+  / - row_no = 0
+  - deal_statuses.each do |deal_status|
+    / Select Lead where a match found from status of the current lead
+    / - row_no = row_no + 1
+    / - if row_no == 3
+    /   - next
+    - deals = current_user.organization.deals.where(deal_status_id: deal_status.id).order("id DESC")
+    - deal_count = deals.count
+    .status_container.droppable_stage{value: "#{deal_status.name}"}
+      / Header of the Lead Status
+      .status_header
+        / .status_header-hdr-chev.status_header-hdr-chev-bf.fl
+        .fl
+          =deal_status.name
+        .fr
+          = deal_count        
+        / .status_header-hdr-chev.status_header-hdr-chev-af
+        .clearfix
+      / Content of Lead status
+      .cb
+      .status_content{style: "color: #666"}
+        - if deal_count == 0
+          .fl.no_lead_found
+            = "No lead found..."
+          .cb
+        -else
+          - deals.each do |deal|
+            .kanban-inner-container.row.draggable_lead{id: "status_#{deal.id}", draggable: "true", value: "#{deal.id}", title: "Drag Lead to change Status"}
+              
+              - if !deal.assigned_to.nil?
+                - user = User.find(deal.assigned_to)
+                - assn_user_id = user.id
+                - assn_user = user.first_name.present? ? user.first_name : user.email
+              - else
+                - assn_user_id = 'null'
+                  
+              .cb
+              .fl
+                .profileIcon.fl
+                  %span.middle-center{style: 'top:3px'}
+                    = deal.title[0].upcase 
+              .fl.status_middle_content
+                %div
+                  %a.title{href: "leads/#{deal.id}", style: "font-weight: normal;color: #0099CB", title: "#{deal.title}"}
+                    = "#{deal.title}"
+                .cb{style: "margin-top:5px"}
+                .fl
+                  $ 
+                  = deal.amount.present? ? "#{deal.amount}" : "0.0"
+                .fr             
+                  - if !assn_user.nil?
+                    %a{href: "contact/#{assn_user_id}", title: "Assigned to - #{assn_user}"}
+                      = assn_user       
+                .cb
+                .fl
+                  - if deal.initiator.full_name.present?
+                    %span{title: "Initialize by - #{deal.initiator.full_name}", style: "cursor: pointer"}
+                      = "#{deal.initiator.full_name}"
+                .fr.days
+                  = (Date.today - deal.created_at.to_date).to_i.to_s + " days ago"
+                .cb
+                .csm-drop-menu.dropdown{style: "height:12px;width:13px"}
+                  %img.dropdown-toggle{:src => "assets/more_icon.ico","data-toggle" => "dropdown", style: "width: 100%"}
+                  %ul.edit_list_content.dropdown-menu{style: "top: 48%;"}
+                    %li
+                      %a{"data-toggle" => "modal", href: "#taskModal", rel: "tooltip", title: "Add a Task",onclick: "$('#task_referrer').val('Kanban View');task_deal(#{deal.id})", "data-id" => deal.id} 
+                        %span.add_i_deal
+                        %span Add Task
+                    %li
+                      %a{"data-target" => "#noteModal", "data-toggle" => "modal", href: "javascript:",  onclick: "$('#notable_id').val(#{deal.id});$('#notable_type').val('Deal');"} 
+                        %span.add_i_note
+                        %span Add Note
+                    %li
+                      %a{"data-target" => "#SendEmailModal", "data-toggle" => "modal", href: "javascript:",onclick: "$('#to').val("");$('#mailer_id').val(#{deal.id});$('#mailer_type').val('Deal');"} 
+                        %span.glyphicon.glyphicon-envelope
+                        %span Send Email
+                    %li
+                      %a{href: edit_lead_path(deal.id)} 
+                        %span.glyphicon.glyphicon-edit
+                        %span Edit
+                    / %li
+                    /   =link_to("Delete", lead_path(deal.id), :method => :delete, :confirm => "Do you want to delete the lead?")
+                    %li
+                      =link_to "javascript:void(0)", onclick: "deleteLead(this)", data: { id: deal.id } do 
+                        %span.glyphicon.glyphicon-trash
+                        %span Delete
+                    - deal_status = DealStatus.find(deal.deal_status_id)
+                    - if deal_status.name != "Won"
+                      %li
+                        
+                        %a.movedealincomepop{"data-toggle" => "modal", href: "#dealmoveModal", rel: "popup", title: "Move Lead",onclick: "move_deal(#{deal.id},#{assn_user_id})", "data-id" => deal.id}
+                          %span.add_i_move
+                          %span  Move Lead
+              .cb
+  .cb  
+#dealmoveModal.modal.fade.margin-top-20{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+      -@deal= DealMove.new
+      = form_for(@deal,:url=>move_lead_path,  :remote => true,:html=>{:class => "form",:method=>"post",:id=>"move_deal_popup"}) do |f|
+        =hidden_field_tag :new_initr_id
+        =hidden_field_tag :new_assign_id
+        =hidden_field_tag :mass_deal_ids
+        .modal-header
+          %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal", "onclick"=>'$("#finish_working").hide();'} ×
+          %h4.modal-title Move Lead
+        .modal-body
+          %input{:type=>"hidden",:name=>"deal_id",:value=>"",:id=>"deal_id_move"}
+          %input{:type=>"hidden",:name=>"flag_id",:value=>"0",:id=>"flag_id"}
+          %div{id:"chk_radio_act",class: "error",style: "display:none;margin-top:-14px;"}
+
+          .cb
+            %br
+            -dealstatuses = current_user.organization.deal_statuses
+            - dealstatuses.each do |ds|
+              .form-group.col-md-6.p0{:class => "show_all deal_s_#{ds.id}"}
+
+                /%label.radio.inline{style: "margin:-10px 0 0px"}
+                /  =f.radio_button :deal_status ,ds.id,:required=>true,:onclick => "change_assign_drop('#{ds.name}');"
+                /  =ds.name
+
+                %span{class: "modal-radio"}
+                  =f.radio_button :deal_status ,ds.id,:required=>true,:onclick => "change_assign_drop('#{ds.name}');"
+                  %label{for: "deal_move_deal_status_#{ds.id}"}
+                    %span
+                    =ds.name
+
+          .cb#finish_working{style: "display:none"}
+
+            .col-md-4.p0
+              .form-group
+                =f.check_box :is_current ,:class=> ""
+                Finished working
+          .cb
+            .form-group#mv_dl_asign
+              .col-md-3.p0
+                %label
+                  Assign User   
+              .col-md-9.p0
+                = select_tag "assigned_to_user", options_for_select(all_org_users.collect {|c| [ c.full_name.present? ? c.full_name : c.email, c.id ]}), :prompt => '- Users -',:class=>"col-md-3 form-control",:required=>true
+                
+          .cb
+            .form-group
+              %label
+                Note
+              =f.text_area :note ,:class=> "col-md-12 form-control",:html=>{:maxlength=> "80"}, :style=> "resize: none;",:rows=>"3" 
+          .cb
+          .modal-footer
+            .pull-left
+              %button.btn.btn-primary.btn-success{type: "submit", "data-disable-with" => "Saving...", onclick: "return chk_radiobtn();"} Save
+              %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+                %span.c_links
+                  Cancel
+
+:javascript
+
+  $('#dealmoveModal').on('show.bs.modal', function (e) {
+    $("#deal_move_note").val("")
+  });
+  $('#move_deal_popup').bind('ajax:complete', function(evt, data, status, xhr){
+    //alert('complete')
+    $("#dealmoveModal").modal('hide');    
+    show_kanban_view();
+  });
+  function change_assign_drop(obj)
+  {
+    //alert(obj);
+    var ini_id = $("#new_initr_id").val();
+    var assn_id = $("#new_assign_id").val();
+    $("#flag_id").val(1);
+    if(obj == "Won" || obj == "Lost" ){
+      $('#assigned_to_user').removeAttr('required');
+      $('#mv_dl_asign').fadeOut("slow");
+    }else
+    {
+      $('#assigned_to_user').prop('required',true);
+      $('#mv_dl_asign').fadeIn("slow");
+    }
+    if(obj == "Junk"){$('#assigned_to_user').val(ini_id);}else{ $('#assigned_to_user').val(assn_id); }
+    if($("#flag_id").val() == "1")
+    {
+      $("#chk_radio_act").hide();
+    }
+    if(obj == "Not Qualified" || obj == "Lost" || obj == "Junk"){
+     $('#deal_move_note').prop('required',true);
+     }else{$('#deal_move_note').prop('required',false);}
+  }
+  function chk_radiobtn()
+  {
+    var chak_flag = $("#flag_id").val();
+    if(chak_flag == "0")
+    {
+      $("#chk_radio_act").show();
+      $("#chk_radio_act").html('Please select an option from below!')
+      return false;
+    }
+    
+  }
+  
+  
+  function deleteLead(val){
+    if(confirm("Are you sure?")){
+      var id = $(val).data("id");
+      $.ajax({
+        url: '/delete_lead/'+id,
+        type: 'DELETE',
+        success: function(res) {
+          //$("#status_"+id).remove();
+          show_kanban_view();
+        }
+      });
+    }
+    else{
+      return false;
+    }
+  }
+  // Implement drag and drop functionality
+  $( function() {
+    $( ".draggable_lead" ).draggable({
+    });
+    $( ".droppable_stage" ).droppable({
+      drop: function( event, ui ) {
+        //retrieve the lead_id and status name from draggable lead and dropable status
+        lead_id = ui.draggable.attr("value");
+        status = $(this).attr("value");
+        $('#task_loader,.fixed_loader').show();
+        $.ajax( {
+          type: "POST",
+          url: "/change_lead_status",
+          data: {lead_id: lead_id, status: status},
+          success: function(result) {
+            $("#view_content").html(result);
+            $('#task_loader,.fixed_loader').hide();
+          },
+          error: function(res) {
+              alert("Some error has been occured.");
+              $('#task_loader,.fixed_loader').hide();
+          }
+        });
+      }
+    });
+  } );
+  // Display movable Lead as the top of all other Lead
+  $( ".draggable_lead" ).mousedown(function(){
+    $(this).css({"z-index":"1000","cursor":"crosshair"});
+  });
+  $( ".draggable_lead" ).mouseup(function(){
+    $(this).css({"cursor":"default"});
+  });
+  $(".draggable_lead").bind('drag',function( event ){
+    $( this ).css({"border":"1px solid #999","box-shadow":"0 0 10px #777"});
+    $( ".droppable_stage .status_content" ).css({"border":"1px solid #0099CB"});
+    $( this ).closest(".status_content").css({"border":"1px solid #e5e5e5"});
+  });

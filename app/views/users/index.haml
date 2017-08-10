@@ -1,0 +1,283 @@
+:css
+  .right-container{
+    padding-top: 85px;
+  }
+.custom_right_padding
+%span.glyphicon.glyphicon-option-vertical
+.container
+  .top-list-bar.white-sticky-header.fixed-in-app-header{style: "padding-top: 22px;padding-left: 35px;"}
+    %span{style: "margin-top:5px"}  
+      %span.navigation_sec
+        - if request.fullpath.include? "organization" 
+          %a{href: "/organizations"}
+            Organizations
+          ="/"
+        - else  
+          %a{href: "/leads"}
+            Leads
+          ="/"
+      %span.curr_page_name
+        Users
+  %div.user_listing
+    = render partial: "get_users"
+= hidden_field_tag "hdn_assign_deals"
+= hidden_field_tag "hdn_unassign_deals"
+#assign_leadModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "assignLeadModal", role: "dialog", tabindex: "-1"}
+  .modal-dialog.new_form_layout{:style => "width: 1050px;"}
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        %span.cwkp-sprite.assign_lead_logo
+        %h4.modal-title{style:"margin-left:5px;display:inline-block;"} ASSIGN LEADS / OPPORTUNITIES
+      .modal-body
+        #assign_content
+#unassign_leadModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "removeLeadModal", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        %h4.modal-title Remove Lead(s)
+      .modal-body
+        #unassign_content
+#editUserModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "editUserModal", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        %h4.modal-title Edit User
+      .modal-body
+        #user_content
+:javascript
+  $(document).ready(function(){
+  $('a[rel="tooltip"],i,input:checkbox,button,div,span').powerTip({smartPlacement: true,fadeInTime: 100,fadeOutTime: 200});
+  $('#user_edit_form').bind('ajax:success', function(evt, data, status, xhr){
+  $('#task_loader').hide();
+  $("#editUserModal").modal('hide');
+  window.location.href ="/users";
+  });
+
+  $('#user_edit_form').bind('ajax:before', function(evt, data, status, xhr){
+  $('#task_loader').show();
+  });
+
+  $("#user_edit_form").bind("ajax:complete", function(evt, data, status, xhr) {
+  if(data.responseText !== " "){
+  $("#alert-msg").show();
+  $("#msg_div").html(data.responseText);
+  }
+  $('#task_loader').hide();
+  });    
+  })
+  $( "li.li-contacts" ).hover(
+    function() {
+      $(this).children("div.actions").show();
+    }, function() {
+      $(this).children("div.actions").hide();
+    }
+  );
+  function change_button()
+  {
+  $("#btn_usr_add").html('<a class="btn btn-primary" data-toggle="modal" href="#inviteuserModal" rel="tooltip" style="float:right;padding:3px;margin:4px;"><span class="icon-plus-sign"></span> Invite a Person</a>');
+  }
+  function  update_assign_lead(user_id){
+    var assign_deals = $('#hdn_assign_deals').val();
+    var unassign_deals = $('#hdn_unassign_deals').val();
+    var user_id = user_id;
+    $.ajax({
+      type: "POST",
+      url: "assign_unassign_deals",
+      data: {unassign_deal_ids: unassign_deals, assign_deal_ids: assign_deals, user_id: user_id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(result) {
+        $(".user_listing").html(result);
+        $('#task_loader').hide();
+        $("#assign_leadModal").modal("hide");
+        $("#unassign_leadModal").modal("hide");
+      }
+    });
+  }
+
+  function assign_deal_to_user(id){
+    $.ajax({
+      type: "POST",
+      url: "/assign_deal_to_user",
+      dataType: 'json',
+      async: false,
+      data: {user_id: id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#assign_leadModal").modal("show");
+        $("#assign_content").html(data.responseText);
+        $("#task_loader").hide();
+      }
+    });
+  }
+
+  function remove_lead(id){
+    $.ajax({
+      type: "POST",
+      url: "/remove_lead",
+      dataType: 'json',
+      async: false,
+      data: {user_id: id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#unassign_leadModal").modal("show");
+        $("#unassign_content").html(data.responseText);
+        $("#task_loader").hide();
+      }
+    });
+  }
+
+  function edit_user(id){
+    $.ajax({
+      type: "POST",
+      url: "/edit_user",
+      dataType: 'json',
+      async: false,
+      data: {user_id: id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#editUserModal").modal("show");
+        $("#user_content").html(data.responseText);
+        $("#task_loader").hide();
+        $('form input[type="text"].bfh-phone, form input[type="phone"].bfh-phone, span.bfh-phone').each(function () {
+          var $phone = $(this);
+          $phone.bfhphone($phone.data());
+        });
+      }
+    });
+  }
+
+  function block_unblock_user(id, type){
+    if(confirm('Are you sure?')){
+      $.ajax({
+        type: "POST",
+        url: "/block_unblock_user",
+        dataType: 'json',
+        async: false,
+        data: {user_id: id, type: type},
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          var json = JSON.parse(data.responseText);
+          $("#task_loader").hide();
+          if(type=="block"){
+            var txt= "Unblock";
+            var act = "unblock";  
+            $(".user_block_"+id).html("<span class='blocked_lable'>Blocked</span>");  
+          }else{
+            var txt= "Block";
+            var act = "block";
+            $(".user_block_"+id).html(""); 
+          }
+          $('a#block_div_'+json['user_id']).attr('onclick',"block_unblock_user('" + json['user_id'] + "','" + act + "')" ).html("<div class='user-action-sprite block'></div>" + txt);
+
+        }
+      });
+    }
+  }
+  function grant_revoke_admin(id, type){
+    if(confirm('Are you sure?')){
+      $.ajax({
+        type: "POST",
+        url: "/grant_revoke_admin",
+        dataType: 'json',
+        async: false,
+        data: {user_id: id, type: type},
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          var json = JSON.parse(data.responseText);
+          $("#task_loader").hide();
+          if(type=="grant"){
+            var txt= "Revoke admin";
+            var act = "revoke";
+            var nm = "Admin";
+            var remove_cls="user-clr";
+            var add_cls="admin-clr";
+          }else{
+            var txt= "Grant admin";
+            var act = "grant";
+            var nm = "User";
+            var remove_cls="admin-clr";
+            var add_cls="user-clr";
+          }
+          $('a#admin_div_'+json['user_id']).attr('onclick',"grant_revoke_admin('" + json['user_id'] + "','" + act + "')" ).html("<div class='user-action-sprite grant block'></div>" + txt);
+          $(".user_type_"+id).removeClass(remove_cls).addClass(add_cls).html(nm);
+        }
+      });
+    }
+  }
+
+  function resend_invitation(id){
+    if(confirm('Are you sure?')){
+      $.ajax({
+        type: "POST",
+        url: "/resend_invite",
+        dataType: 'json',
+        async: false,
+        data: {user_id: id},
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          var json = JSON.parse(data.responseText);
+          $("#task_loader").hide();
+          if(json['status']=="success"){
+            $("#search_result").after("<div class='alert fade in alert-bosuccess' style='position:absolute;'><button class='close' data-dismiss='alert'>×</button>Successfully resent invitation to '" + json['user_email'] + "'</div>");
+          }else{
+            $("#search_result").after("<div class='alert fade in alert-bodanger' style='position:absolute;'><button class='close' data-dismiss='alert'>×</button>Something went wrong.</div>");
+          }
+        }
+      });
+    }
+  }
+/= render :partial => "shared/source"
+/= render :partial => "shared/industry"  

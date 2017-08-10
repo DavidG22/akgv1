@@ -1,0 +1,117 @@
+= form_for @daily_update, as: :daily_updates, url: save_daily_updates_path, method: :post, html: { class: "daily_update_form", id: "daily_update_form" } do |f|
+  = hidden_field_tag "hdn_deal_id"
+  /.lbl-blk.user
+  /  %label Lead
+  /  = f.select('deal_id', options_from_collection_for_select(@deals,"id","title", @daily_update.deal_id.to_i), :class => "select form-control dailyUpdate_sel")
+  .lbl-blk.user
+    %label Users Involved
+    .all
+      = hidden_field_tag "hdn_user_ids"
+      - if @users.present? && @users.count > 1
+        = check_box_tag "usercheckAll",'usercheckAll'
+        All
+    %div
+      %span
+        -if @users.present?
+          - @users.each do |u|
+            = check_box_tag 'daily_updates_user_ids', u.id, f.object.present? && f.object.user_ids.present? && f.object.user_ids.include?(u.id.to_s)
+            = u.first_name.present? ? u.first_name : u.email           
+  .lbl-blk
+    %label Set TimeZone
+    = f.time_zone_select(:time_zone, ActiveSupport::TimeZone.us_zones)
+  .lbl-blk.alert-time.user
+    %label Set Alert Time
+    .col-md-4.pull-left
+      %label Hour(s)
+    .col-md-4.pull-right
+      %label Minute(s)
+    = f.time_select 'alert_time', {minute_step: 5}
+    %span{class:"format_txt"}
+      %strong
+        Note:
+      24 hours format
+    .clearfix
+  
+  .lbl-blk.user
+    %label Frequency
+    .all
+      = hidden_field_tag "hdn_frequency"          
+      = check_box_tag "checkAll",'checkAll'
+      All
+    %div
+      %span
+        - Date::ABBR_DAYNAMES.each do |d|
+          = check_box_tag "frequency",  d, f.object.present? && f.object.frequency.present? && f.object.frequency.include?(d)
+          = d
+    .clearfix
+  .update-cancel-btn
+    %a.btn_hover_link.cmn_size{:href => "javascript:void(0)", "data-dismiss" => "modal"} Cancel
+    = f.submit "Update", class: "update"
+
+:javascript
+  $("#hdn_deal_id").val("#{@daily_update.deal.id}");
+  var countChecked = function() {
+    var total = [];
+    var n = $( "input:checked" ).not('#checkAll').length;
+    
+    $( "input[type=checkbox][name=frequency]:checked" ).not('#checkAll').each(function(){
+      total.push($(this).attr("value"));
+    });
+    $( "#hdn_frequency" ).val(total);
+
+    if($(this).attr("value") != "checkAll"){
+      $("#checkAll").removeAttr("checked");
+    }
+
+    if($( "input[type=checkbox][name=frequency]:checked" ).not('#checkAll').length == $( "input[type=checkbox][name=frequency]" ).not('#checkAll').length){
+      $("#checkAll").prop("checked","checked");
+    }     
+  };
+  //countChecked();
+  var total = [];
+  $("input[type=checkbox][name=frequency]:checked").each(function () {
+      total.push($(this).attr("value"));
+  });
+  $( "#hdn_frequency" ).val(total);
+   
+  $( "input[type=checkbox][name=frequency]" ).on( "click", countChecked );
+  $("#checkAll").click(function () {
+     $('input[type=checkbox][name=frequency]').not(this).prop('checked', this.checked);
+     $("input[type=checkbox][name=frequency]:checked").each(function () {
+          total.push($(this).attr("value"));
+      });
+      $( "#hdn_frequency" ).val(total);
+  });
+
+  /* User selection*/
+  var usercountChecked = function() {
+    var usrtotal = [];
+    
+    $( "input[type=checkbox][name=daily_updates_user_ids]:checked" ).not('#usercheckAll').each(function(){
+      usrtotal.push($(this).attr("value"));
+    });
+    $( "#hdn_user_ids" ).val(usrtotal);
+    if($(this).attr("value") != "usercheckAll"){
+      $("#usercheckAll").removeAttr("checked");
+    }
+
+    if($( "input[type=checkbox][name=daily_updates_user_ids]:checked" ).not('#usercheckAll').length == $( "input[type=checkbox][name=daily_updates_user_ids]" ).not('#usercheckAll').length){
+      $("#usercheckAll").prop("checked","checked");
+    }     
+  };
+   
+  $( "input[type=checkbox][name=daily_updates_user_ids]" ).on( "click", usercountChecked );
+
+  var usrtotal = [];
+  $("input[type=checkbox][name=daily_updates_user_ids]:checked").each(function () {
+      usrtotal.push($(this).attr("value"));
+  });
+  $( "#hdn_user_ids" ).val(usrtotal);
+
+  $("#usercheckAll").click(function () {
+     $('input[type=checkbox][name=daily_updates_user_ids]').not(this).prop('checked', this.checked);
+     $("input[type=checkbox][name=daily_updates_user_ids]:checked").each(function () {
+          usrtotal.push($(this).attr("value"));
+      });
+      $( "#hdn_user_ids" ).val(usrtotal);
+  });

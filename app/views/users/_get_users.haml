@@ -1,0 +1,108 @@
+.proj_grid.m-cmn-flow
+  .user_div_bk.usrs_page.m-list-tbl{style: "padding-right: 15px;"}
+    - @users.each do |user|
+      .col-md-4.padrht
+        .usr_mcnt.cmn_bdr_shadow
+          .usr_top_cnt
+            .usr_act_det.fr
+              %span.dropdown
+                %a.dropdown-toggle.active{"data-target" => "#", "data-toggle" => "dropdown", :href => "javascript:void(0);"}
+                  .user-action-sprite.vertical-icon
+                  /%i.material-icons 
+                %ul.dropdown-menu.right0.user-actions
+                  - if user.invitation_token.present? && !user.invitation_accepted_at.present?
+                    %li
+                      %a.edit-exist-usr{"data-usr-id" => "#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "resend_invitation('#{user.id}')"}
+                        .user-action-sprite.profile
+                        Resend Invitation
+                  - else
+                    %li
+                      %a.icon-assign-usr{"data-usr-id" => "#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "assign_deal_to_user('#{user.id}')"}
+                        .user-action-sprite.assign_deal
+                        Assign Lead
+                    %li
+                      %a.icon-remprj-usr{"data-usr-id" => "#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "remove_lead('#{user.id}')"}
+                        .user-action-sprite.remove_deal
+                        Remove Lead
+                    - if user.admin_type.present? && @current_user.id != user.id  && !user.is_super_admin?
+                      %li
+                        %a{"data-usr-id" => "block_#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "block_unblock_user('#{user.id}', '#{user.is_blocked ? "unblock" : "block"}')", id:"block_div_#{user.id}"}
+                          .user-action-sprite.block
+                          = user.is_blocked ? "Unblock" : "Block"
+                      %li
+                        %a{"data-usr-id" => "grant_revoke_#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "grant_revoke_admin('#{user.id}', '#{user.is_admin? ? "revoke" : "grant"}')", :id=>"admin_div_#{user.id}"}
+                          .user-action-sprite.grant
+                          = user.is_admin? ? "Revoke Admin" : "Grant Admin"
+                    - if (@current_user.admin_type == 2 && user.admin_type !=1 && user.admin_type !=2) || (@current_user.admin_type == 2 && @current_user.id == user.id) || @current_user.is_super_admin?
+                      %li
+                        %a.edit-exist-usr{"data-usr-id" => "#{user.id}", "data-usr-name" => "#{user.full_name}", :href=>"javascript:void(0)", :onclick => "edit_user('#{user.id}')"}
+                          .user-action-sprite.profile
+                          Edit Profile
+            .user-pfimg-name
+              %ul
+                %li
+                  - if user.first_name.present?
+                    - char_name = user.first_name
+                  - else
+                    - char_name = user.email
+                  .user_img{:style => "background: #{user.get_user_color_code(char_name.downcase[0])} !important"}
+                    - if user.image.present?
+                      = image_tag user.image.image.url(:thumb)
+                    - else
+                      %span.name_txt
+                        = char_name[0]
+                  %h3#pn_11.invite_user_cls
+                    = user.full_name.present? ? user.full_name : user.email.split("@")[0] 
+                  .email-txt
+                    = user.email
+                  %span#psn_11
+                    = char_name[0,3].upcase
+                  |
+                  - if user.admin_type.nil?
+                    %span.user-role-type.owner-clr{:class=> "user_type_#{user.id}"}
+                      Not Defined
+                  - elsif user.is_super_admin?
+                    %span.user-role-type.owner-clr{:class=> "user_type_#{user.id}"}
+                      Super Admin
+                  - elsif user.is_admin?
+                    %span.user-role-type.admin-clr{:class=> "user_type_#{user.id}"}
+                      Admin
+                  - else
+                    %span.user-role-type.user-clr{:class=> "user_type_#{user.id}"}
+                      User
+                    - if user.user_role.present? && user.user_role.role.present?
+                      |
+                      %span{:title=> "Groups"}                    
+                        = user.user_role.role.name
+          .usr_cnts
+            %ul
+              /%li
+              /  %b Created:
+              /  = user.created_at.strftime("%b %d, %Y %H:%M:%S")
+              /%li
+              /  %b Leads:
+              /  = user.all_assigned_deal.present? ? user.all_assigned_deal.map{|column| column.title}.map(&:inspect).join(",").gsub('"','').truncate(30, omission: '...') : "NA"
+              %li
+                .lead-task-blk
+                  .fl.leads-tasks-count
+                    %strong Leads
+                    = user.all_assigned_deal.count
+                  .fl.leads-tasks-count
+                    %strong Tasks
+                    = user.all_tasks_assigned.count
+                  .fr.leads-tasks-count
+                    %strong Activities
+                    = user.activities.count
+                  .cb
+          .user_bottom_info  
+            - if user.invitation_token.present? && !user.invitation_accepted_at.present?
+              .fl.invitation_sent_label
+                = "Invitation Sent"
+            .fl{:class=>"user_block_#{user.id}"}  
+              - if user.is_blocked
+                %span.blocked_lable
+                  Blocked
+            .fr.user_added_on
+              Added on: 
+              = user.created_at.strftime("%b %d, %Y")
+            .cb

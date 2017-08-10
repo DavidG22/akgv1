@@ -1,0 +1,153 @@
+#ImportContactModal.modal.fade{"aria-hidden" => "true", role: "dialog", tabindex: "-1"}
+  .modal-dialog.new_form_layout
+    .modal-content
+      = form_tag("",method: "post",:multipart => true, class: "import_contact_form", id: "import-contact-form") do
+        .modal-header
+          %h4.modal-title Import Contact from Sugar CRM
+        .modal-body
+          .download_sample_csv
+            %p
+              We are supporting csv file import. Here is a sample csv format we are supporting.
+            %p
+              Click Here to Download
+              %a{href: "http://wakeupsales.com/contact.csv", download: "contact.csv"} 
+                Sample CSV
+          .download_sample_bulk_csv
+            %p
+              We are supporting csv file import. Here is a sample csv format we are supporting.
+            %p
+              Click Here to Download
+              %a{href: "http://wakeupsales.com/bulk_contact.csv", download: "bulk_contact.csv"} 
+                Sample CSV                
+          .row
+            .form-group.col-md-12
+              .choose_crm
+                %span.modal-radio
+                  %input{:checked => "checked", :name => "choose_crm",id: "sugar_crm", :onclick => "open_crm_modal('sugar_crm');show_crm_radio();", :type => "radio"}
+                  %label{:for => "sugar_crm"}
+                    %span
+                    ="Sugar CRM"
+
+                %span.modal-radio
+                  %input{:name => "choose_crm",id: "fatfree_crm", :onclick => "open_crm_modal('fatfree_crm');show_crm_radio();", :type => "radio"}
+                  %label{:for => "fatfree_crm"}
+                    %span
+                    ='Fatfree CRM'
+
+                %span.modal-radio
+                  %input{ :name => "choose_crm",id: "zoho_crm", :onclick => "open_crm_modal('zoho_crm');show_crm_radio();", :type => "radio"}
+                  %label{:for => "zoho_crm"}
+                    %span
+                    ='Zoho CRM'
+
+                %span.modal-radio
+                  %input{ :name => "choose_crm",id: "other_crm", :onclick => "open_crm_modal('other_crm');show_crm_radio();", :type => "radio"}
+                  %label{:for => "other_crm"}
+                    %span
+                    ='Other CRM'
+              = file_field_tag "attachment_lead", :class => "form-control height-auto", :required => true, style:"color:#333;border:none;padding-left:0"
+              = hidden_field_tag "ref_site"
+          .col-md-6.form-layout-footer.padlft#submit_contact_btn.displaynone
+            =submit_tag "Submit", :class=>"btn btn-info", :disable_with => "Submitting....", :id => "submit_contact_import"
+            %a.btn.btn-default{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+              Cancel
+          .cb
+#output_contact_import
+:javascript
+  $(document).ready(function() { 
+    $('#ImportContactModal').on('shown.bs.modal', function () {
+      
+    });
+    
+    var options = { 
+        target:        '#output_contact_import',   // target element(s) to be updated with server response 
+        beforeSubmit:  showRequest_contact_upload,  // pre-submit callback 
+        success:       showResponse_contact_upload, // post-submit callback 
+        clearForm: true        // clear all form fields after successful submit 
+    }; 
+    
+    // bind to the form's submit event 
+    $('#import-contact-form').submit(function() {
+        if($(".import_contact_form").attr("action") != "/import_bulk_contact"){
+          $(this).ajaxSubmit(options); 
+          return false; 
+        }
+    }); 
+  }); 
+ 
+  // pre-submit callback 
+  function showRequest_contact_upload(formData, jqForm, options) {
+    $('#submit_contact_import').prop("disabled", true).html("Please wait...");
+    var queryString = $.param(formData);
+    return true; 
+  } 
+ 
+  // post-submit callback 
+  function showResponse_contact_upload(responseText, statusText, xhr, $form)  { 
+    if(responseText == "success"){
+     window.location = "/imported_contacts"
+    }else{
+      alert("Invalid csv format");
+      $('#submit_contact_import').removeAttr("disabled").html("Preview")
+    }
+    //alert('status: ' + statusText + '\n\nresponseText: \n' + responseText + 
+    //    '\n\nThe output div should have already been updated with the responseText.'); 
+  } 
+
+  $(function() {
+    $("input:file[id=attachment_lead]").change(function (){
+      var flname = $(this).val().split(/\\/).pop();
+      var ext = flname.split('.').pop().toLowerCase();
+      if (!ext.match('csv')) {
+        alert("Please upload csv file only. ");
+        $("#"+obj.id).val('');
+        $('#submit_contact_btn').hide();
+        return false;
+      }else{
+        $('#submit_contact_btn').show();      
+      }
+    });    
+  });
+
+  function open_crm_modal(crm_name){
+    $(".choose_crm").hide();
+    if(crm_name == "zoho_crm"){
+      $("#ImportContactModal .modal-title").html("Import Contact From Zoho CRM");
+      $("#ref_site").val("http://www.zohocrm.com");
+      $(".import_contact_form").attr("action","/import_contact_from_zoho_crm");
+      $(".download_sample_csv").hide();
+      $(".download_sample_bulk_csv").hide();
+    }
+    if(crm_name == "sugar_crm"){
+      $("#ImportContactModal .modal-title").html("Import Contact From Sugar CRM");
+      $("#ref_site").val("http://www.sugarcrm.com");
+      $(".import_contact_form").attr("action","/import_contact_from_sugar_crm");
+      $(".download_sample_csv").hide();
+      $(".download_sample_bulk_csv").hide();
+    }
+    if(crm_name == "fatfree_crm"){
+      $("#ImportContactModal .modal-title").html("Import Contact From Fatfree CRM");
+      $("#ref_site").val("http://www.fatfreecrm.com");
+      $(".import_contact_form").attr("action","/import_contact_from_fatfree_crm");
+      $(".download_sample_csv").hide();
+      $(".download_sample_bulk_csv").hide();
+    }
+    if(crm_name == "other_crm"){
+      $("#ImportContactModal .modal-title").html("Import Contact From Other CRM");
+      $("#ref_site").val("Others");
+      $(".import_contact_form").attr("action","/import_contact_from_other_crm");
+      $(".download_sample_csv").show();
+      $(".download_sample_bulk_csv").hide();
+    }
+    if(crm_name == "bulk_contact"){
+      $("#ImportContactModal .modal-title").html("Import Bulk Contact");
+      $("#ref_site").val("Bulk Contact");
+      $(".import_contact_form").attr("action","/import_bulk_contact");
+      $(".download_sample_csv").hide();
+      $(".download_sample_bulk_csv").show();
+    }    
+  }
+
+  function show_crm_radio(){
+     $(".choose_crm").show(); 
+  }

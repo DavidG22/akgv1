@@ -1,0 +1,1174 @@
+-@deal_org=@deal
+-content_for :title,@deal.title
+= javascript_include_tag "skypeCheck"
+= javascript_include_tag "jquery.uploadfile_lead.min"
+= stylesheet_link_tag "uploadfile.min"
+:css
+  body{
+    overflow-x:hidden;
+  }
+  .con-box1{margin-bottom: 10px;}
+  span.upload {
+    overflow: hidden;
+  }
+  span.upload input {
+      display: block !important;
+      opacity: 0 !important;
+      overflow: hidden !important;
+  } 
+  textarea {
+      color: #444;
+      padding: 5px;
+  }
+  .drag_and_drop{display:none;}
+  .lead-details-page .attach .ajax-upload-dragdrop .drag-and-drop-files{display:none;}
+  #new-notes-popup .ajax-upload-dragdrop{width:100px !important}
+  .txtstuff {
+      resize: none; /* remove this if you want the user to be able to resize it in modern browsers */
+      overflow: hidden;
+      padding: 11px;
+  }
+  
+  .hiddendiv {
+      display: none;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word; /* future version of deprecated 'word-wrap' */
+  }
+  /* the styles for 'commmon' are applied to both the textarea and the hidden clone */
+  /* these must be the same for both */
+  .common {
+      width: 500px;
+      min-height: 47px;
+
+      overflow: hidden;
+  }
+  .lbr {
+      line-height: 3px;
+  }  
+  .glyphicon-fullscreen, .glyphicon-pencil{color:#555555}  
+  #note_notes-wysiwyg-iframe{width:668px !important;}
+
+  a {
+      color: #0254EB
+  }
+  a:visited {
+      color: #0254EB
+  }
+  a.morelink {
+      text-decoration:none;
+      outline: none;
+  }
+  .morecontent span {
+      display: none;
+  }
+  .morecomment {
+      background-color: #fcf8e3;
+      border: 1px solid #fbeed5;
+      color: #c09853;
+      margin-top: 11px;
+      padding: 0 35px 8px 14px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      display:none;
+  }
+  .visitoverflow {
+      max-height: 400px;
+      overflow-y: auto;
+  }  
+  .ajax-file-upload-green{
+    font-family: "Poppins" !important;
+    font-size:12px !important;
+  }
+  #time_line_id .editable-input{width:100px;}
+  #time_line_id .editable-input textarea{width:100% !important;}
+  #time_line_id .editable-submit, .editable-cancel{padding:2px 3px 2px 7px}
+/= subscribe_to "/messages/deals#{@deal.id}"
+.container
+  = hidden_field_tag "contact_type", "#{@deal.contact_type if @deal.contact_type.present?}"
+  = hidden_field_tag "cur_selected_contact", ""
+  = hidden_field_tag "deal_id_timeout", @deal.id
+  = hidden_field_tag "deal_assignid", @deal.assigned_to
+  = hidden_field_tag "deal_contacts_id", @deal.deals_contacts.select(:contactable_id).collect(&:contactable_id).join(",")
+  -deal_cl = @deal.priority_type.present? ? @deal.priority_type.name.downcase : "na"
+  .top-list-bar.white-sticky-header.fixed-in-app-header{style: "padding-top: 22px;padding-left: 30px;"}
+    %span{style: "margin-top:5px"}  
+      %span.navigation_sec
+        %a{href: "/leads"}
+          Leads
+        ="/"
+      %span.curr_page_name
+        = @deal.title
+  .lead-details-page
+    #top_lead_details_sec  
+      = render :partial => "top_lead_details"
+    / Stats of lead details page
+    .col-md-8.show_del_icon.padlft
+      .con-box1{style: "margin-bottom: 15px;padding-bottom:13px"} 
+        
+        .add-timezone
+          / %i.fa.fa-clock-o{"aria-hidden" => "true"}
+          / Add Time Zone +
+          - if @deal.deals_contacts.first.contactable.time_zone.present?
+            .col-md-6.padlft
+              %span.cwkp-sprite.time-zone{title: "Time Zone"}
+              %span
+                %a.profile_time_zone{:href => "#", :id => @deal.deals_contacts.first.contactable.id, :"data-value"=> @deal.deals_contacts.first.contactable.time_zone , :onclick=> "$('#cur_selected_contact').val(#{@deal.deals_contacts.first.contactable.id})"}
+                  = @deal.deals_contacts.first.contactable.time_zone
+            .col-md-6
+              .fr.current-time
+                %span.grey_act.ft-12
+                  Current Time:
+                %span.ft-12
+                  =DateTime.parse(ActiveSupport::TimeZone[@deal.deals_contacts.first.contactable.time_zone].now.to_s(:rfc822)).strftime('%a, %d %b %H:%M:%S')
+              .cb
+            .cb   
+          -else
+            .fl
+              %span.cwkp-sprite.time-zone
+              %span  
+                %a.profile_time_zone{:href => "#", :id => @deal.deals_contacts.first.contactable.id, :"data-value"=> ActiveSupport::TimeZone, :onclick=> "$('#cur_selected_contact').val(#{@deal.deals_contacts.first.contactable.id})", style: "color: red;font-style: italic;"}
+                  Add Time Zone +
+            .cb
+        .priority
+          .fr.add-edit.p0.del_icons_res{style: "margin-top:10px;text-align:right"}
+            -@con = @deal.contact_email.present? ? @deal.contact_email : ""
+            -@con_id = @deal.contacts_id.present? ? @deal.contacts_id : ""
+            -@c_type =@deal.contact_type.present? ? @deal.contact_type : ""
+            - if (@deal.associated_users.include?@current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)
+              =link_to "#", class: "grey_act", style: "text-decoration:none;color:#999999 !important",onclick: "$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val('"+@con +"');$('#mailer_id').val('#{@deal.id}');$('#mailer_type').val('Deal');$('#email_contact_id').val('#{@con_id}');$('#email_contact_type').val('"+ @c_type +"');reset_email_err_msg();", href: 'javascript:', "data-toggle"=>"modal", "data-target"=>"#SendEmailModal" do
+                %span.glyphicon.glyphicon-envelope{title: "Send Email", rel: "tooltip"} 
+            - if (@deal.associated_users.include?@current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)
+              =link_to edit_lead_url, style: "margin-left: 2%;text-decoration:none;background:none;color:#555555", class: "grey_act", :onclick=>"$('#editDealModal').modal('show');edit_deal_popup('#{@deal.id}')", :remote => true do
+                %span.glyphicon.glyphicon-pencil{title: "Edit Lead", rel: "tooltip"}
+              -if (@deal.deal_status.present? && @deal.deal_status.original_id != 4)
+                - if @deal.created_by == @current_user.id || @current_user.is_admin? || @current_user.is_super_admin?
+                  - deal_delete_url = @deal.is_remote? ? lead_path(@deal,:type=>'unassigned') : lead_path(@deal)
+                  =link_to deal_delete_url, :method => :delete, :confirm => "Do you want to delete the lead?" ,class: "grey_act", style: "text-decoration:none" do
+                    %span.glyphicon.glyphicon-trash{title: "Delete", rel: "tooltip"}
+          .cb
+          .priority-detail
+            .col-md-4.padrht
+              %ul
+                %li
+                  %strong
+                    Priority
+                  = ":" 
+                  %span
+                    -deal_cl = deal_cl + "_pri"
+                    %span.labelTaskType.priority_label{class: deal_cl} 
+                      -if !@deal.priority_type.nil?
+                        =@deal.priority_type.name
+                      - else
+                        NA
+                    - if (@deal.associated_users.include? @current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)  
+                      %span.dropdown.priority_in_lead_details
+                        %span.caret.dropdown-toggle.space-left.black{"data-toggle" => "dropdown", :style => "cursor:pointer"}
+                        %ul.dropdown-menu{:style => "left: -8px;"}
+                          %li.arrow_top
+                          %li
+                            %a{:href => "javascript:void(0)", :onclick => "changePriority(#{@deal.id},\"Hot\",1)"}
+                              %span.cwkp-sprite.hot
+                              %span Hot
+                          %li.divider
+                          %li
+                            %a{:href => "javascript:void(0)", :onclick => "changePriority(#{@deal.id},\"Warm\",2)"}
+                              %span.cwkp-sprite.warm
+                              %span Warm
+                          %li.divider
+                          %li
+                            %a{:href => "javascript:void(0)", :onclick => "changePriority(#{@deal.id},\"Cold\",3)"}
+                              %span.cwkp-sprite.cold
+                              %span Cold
+
+                %li
+                  %strong First touch
+                  %span
+                    = ":"
+                    =distance_of_time_in_words_to_now @deal.created_at
+                    ago
+                %li
+                  %strong Created on
+                  %span
+                    / = @deal.created_at.strftime("%Y-%m-%d %H:%M")
+                    = ":"
+                    =distance_of_time_in_words_to_now @deal.created_at
+                    ago
+            .col-md-4.padrht 
+              %ul
+                %li
+                  %strong Stage
+                  = ":"
+                  %span
+                    .lead-stages-cntr
+                      %span.deal_status_name{:title => "#{@deal.deal_status_name}"}
+                        = @deal.deal_status_name.present? ? @deal.deal_status_name : "Not Available"
+                      - if (@deal.associated_users.include? @current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)  
+                        %span.dropdown{style: "text-align: left;"}
+                          %span.caret.dropdown-toggle.black{"data-toggle" => "dropdown", :onclick => "getLeadStages(#{@deal.id},'lead_details')", :style => "cursor:pointer;width:0;"}
+                          %ul.dropdown-menu.select-stage-inlead-list{:style => "top:20px;left: -95px;"}
+                            %li.arrow_top{:style => "left: 94px;"}
+                            .stages-list
+                %li
+                  %strong Lead tag
+                  = ":"
+                  %span
+                    - if @deal.tags.present?
+                      - @deal.all_tags.split(',').each do |ta|
+                        - url = cookies[:page_tab].present? ? "#{leads_path(:type=>cookies[:page_tab],:tag =>ta)}" : "#{leads_path(:tag =>ta)}"
+                        %a.tag_tech.fl{href: "javascript:void(0);",onclick:"store_cookie('#{ta}','#{url}')",style: "margin-right:5px;position:relative;margin-top:2px"}
+                          =ta
+                          .caret_tag
+                        
+                    -else
+                      %span{style: "position:relative"}
+                        Not Available
+                %li
+                  %strong Created by
+                  = ":"
+                  %span
+                    - cre_by = @deal.initiator.present? && @deal.initiator.full_name.strip.present? ? @deal.initiator.full_name : @deal.initiator.email
+                    %span{title: cre_by}
+                      = cre_by.truncate(20)
+                
+            .col-md-4.padrht.padlft
+              %ul
+                %li
+                  %strong Visibility
+                  = ":"
+                  %span
+                    -if @deal.is_public?
+                      .fl Everyone
+                    -else
+                      .fl Associate Users
+                %li
+                  %strong Next Action
+                  = ":"
+                  %span
+                    - nxt_action = @deal.last_task.present? ? @deal.last_task.name  : "No-Action"
+                    %div{:id=>"deal_#{@deal.id}"}
+                      %div{class: "last_task_#{nxt_action}"}
+                        .labelTaskType.tasktype{class: "label#{nxt_action}", style: "margin:0"} 
+                          = nxt_action
+                %li
+                  %strong Source
+                  = ":"
+                  %span
+                    - if @deal.deal_source.present? && @deal.deal_source.source.present? && @deal.deal_source.source.name.present?
+                      - if @deal.deal_source.source.name.include?("http://")
+                        %a{href: "#{@deal.deal_source.source.name}", rel: "tooltip", title: "#{@deal.deal_source.source.name}", target: "_blank"}
+                          =@deal.deal_source.source.name
+                      -else
+                        %a{href: "javascript:void(0)", rel: "tooltip", title: "#{@deal.deal_source.source.name}",style: "cursor:default;text-decoration:none;"}
+                          =@deal.deal_source.source.name.truncate(20)
+                    -else
+                      Not Available
+            .cb
+
+          
+
+        / We will integrate later
+        / .btn-row
+        /   .text-right
+        /     %a{:href => "javascript:void(0)"}
+        /       %i.fa.fa-reply{"aria-hidden" => "true"}>
+        /       Replay
+        /     %a{:href => "javascript:void(0)"}
+        /       %i.fa.fa-share{"aria-hidden" => "true"}>
+        /       Forward
+        /     %a{:href => "javascript:void(0)"}
+        /       %i.fa.fa-print{"aria-hidden" => "true"}>
+        /       Print
+        /     %a{:href => "javascript:void(0)"}
+        /       %i.fa.fa-circle{"aria-hidden" => "true"}>
+        /       Spam
+        /     %a{:href => "javascript:void(0)"}
+        /       %i.fa.fa-trash-o{"aria-hidden" => "true"}>
+        /       Delete
+
+
+
+
+
+
+
+
+      .cb
+      .con-box1.task-container{ class: "task_widget_#{@deal.id}",style: "padding-bottom:1px"}
+        .fl
+          %span.cwkp-sprite.task-list
+          %span.head_font Task List
+        - if (@deal.associated_users.include?@current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)
+          .fr
+            %a{"data-toggle" => "modal", href: "#taskModal",onclick: "$('#task_form')[0].reset();setTimeout(\"$('#deal_title_task').val('#{@deal.title}');$('#hfield').val('#{@deal.id}');$('.custom-frm-inner').trigger('focusout');task_deal('#{@deal.id}')\",1000);$('#deal_title_task').attr('disabled', true);$('#clicked_button_ref').val('taskwidget')", "data-id" => @deal.id,rel: "tooltip", title: "Add a task"} 
+              %button.btn.btn_adcon.btn-default{type: "button", style:"margin:0"}
+                %i.add_u_task{:style=>"margin-right: 2px;margin-left: -18px;"}
+                Add Task      
+        .cb10
+        %input{:type=>"hidden", :id=>"deal_id" ,:value=>@deal.id}
+        #task_header.task_dealdtl
+          =render :partial=>"deals/widget_task_header" ,:objects=>{deal: @deal}
+      .cb
+
+
+    / Activity Stream section
+    .col-md-4.padlft.padrht
+      .con-box1.activity-stream-section{style: "padding:10px 0;margin-bottom: 15px;"}
+        %div{style: "padding-left:10px"}
+          %span.cwkp-sprite.activity-stream
+          %span.head_font Activity Stream
+        #time_line_id.cmn_cl
+          %div{style: "text-align:center;padding-top: 60px"}
+            %img{alt: "Ajax-loader2", src: "#{ENV['cloudfront']}/assets/ajax-loader2.gif"}
+        .cb10
+
+        / Attachment section
+      .attach.con-box1
+        / .fr.msg_ok.add-attach{title: "Click to attach file"}
+        /   %h4#show_nt_deal_div{style: "margin-top:0px;cursor:pointer"}
+        /     %span.glyphicon.glyphicon-paperclip{style: "color:#4C5264;"}
+        / .cb
+        %span.cwkp-sprite.attach
+        %span.quick_attach
+          Quick Attach
+        .form_container
+          #deal_note_div
+            - note = Note.new()
+            = form_for(note,:url=>"/add_notes", :remote=>true,:html=>{:class => "form",:method=>"post",:id=>"new-notes-popup",:multipart => true}) do |f|
+              = hidden_field_tag :notable_type, "Deal"
+              = hidden_field_tag :notable_id, @deal.id
+              = hidden_field_tag :remove_file_ids
+              %label.col-sm-1.control-label{style: "padding-left: 11px;padding-top: 11px;"}
+              .col-sm-11{style: "padding:0"}
+                =hidden_field_tag "hidden_note","",name: "note[notes]"
+                =f.text_area :notes,maxlength: "300", :required => true , :class=> "form-control",:style =>"height:50px;background:#fcfcfc;padding-right:40px;font-size:12px;overflow-y:auto;max-height:100px;margin-bottom: 10px;", :onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))", placeholder: "Write a note & attach file(s)..."
+                =hidden_field_tag "note_from_deal", true
+                =hidden_field_tag "temp_file_ids"
+                .fr.add-note-and-attach
+                  %button.btn.btn-primary{type: "submit", disable_with: "Please wait...", id: "notes_submit_btn",onclick: "getd('hidden_note');"} Add a Note
+                #fileuploader
+                  Upload
+                .cb
+                #show_file_name{style: "background: #f1f5fa;padding: 10px;width: 65%;margin: 5px auto;text-align:center;display:none"}
+                %br
+          .cb
+        .cb
+        /Display all attachment here by ajax call
+        /#notes_attach{style: "line-height: 0.1;"}
+        /  %div{style: "text-align:center;padding-top: 6px"}
+        /    %img{alt: "Ajax-loader2", src: "#{ENV['cloudfront']}/assets/ajax-loader2.gif"}        
+        /.cb10      
+        
+  = render :partial => "shared/move_deal",:cache=> true    
+  = render :partial => "edit_deal"  
+#showVisited.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1","data-replace"=>"true"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} x
+        %h4.modal-title Visitor Path
+      .modal-body.visitoverflow
+        .row
+          .form-group.col-md-6
+            Page
+        .row
+          .form-group.col-md-12
+            - i=0
+            %table.table.table-striped
+              - if @deal_org.visited.present?
+                - @deal_org.visited.split(',').each do |visit|
+                  %tr{:height=>"30px"}
+                    %td
+                      = i += 1
+                    %td{:width => "10px"}
+                    %td
+                      = visit
+              
+        .modal-footer
+          .pull-left
+            /%button.btn.btn-primary{type: "submit",id: "add_con","data-disable-with" => "Saving...", onclick: "return chk_con_id();"} Save  
+            %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+              %span.c_links
+                Close
+
+#addCon.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+
+      = form_tag(add_contact_path,:id=>"associate_con", :remote => true) do |f|
+        .modal-header
+          %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} x
+          %h4.modal-title Add Contact
+        .modal-body
+          .row 
+            .form-group.col-md-6
+              =text_field_tag :first_name,"",:class=>"col-md-12 custom-frm-inner typeahead",:onkeypress=>"clear_value()", "data-provide"=> "typeahead" , :autocomplete=>"off", :required => true
+              %label.control-label{:for => "input"} Contact
+              %i.bar
+              
+              %div{id: "show_er",class: "error",style: "display:none;"}
+              =hidden_field_tag 'contactable_id'
+              =hidden_field_tag 'contactable_type'
+              =hidden_field_tag "deal_id","#{params[:id]}"
+              //%input{:type=>"hidden",:id=>"extension_contact_popup",:name=> "extension_contact_popup"}
+            .form-group.col-md-6
+              
+              %input#email.inp_txt{name: "email",type: "email", value: "", required: "true"}/
+              %label.control-label{:for => "input"} Email
+              %i.bar 
+              %div{id: "show_er_deal_em",class: "error",style: "display:none;"}
+          .row
+            .form-group.col-md-6
+              =text_field_tag "company_value", "",:size=>"32" ,:class=>"custom-frm-inner company_value_typeahead", "data-provide"=> "typeahead", :id=>"comp_name", :autocomplete=>"off",onkeypress:"$('#comp_id').val('')",onkeyup:"$('#text_loader').show()"
+              %label.control-label{:for => "input"} Company name
+              %i.bar
+              =hidden_field_tag "comp_id"
+            .form-group.col-md-6
+              = time_zone_select :time_zone, "contact", ActiveSupport::TimeZone.us_zones,{}, {:default=> @current_user.time_zone}
+              %label.control-label{:for => "time_zone"} - Select Time Zone -
+              %i.bar
+          .row
+            .form-group.col-md-6
+              - @coun = Country.find(:all)
+              = select_tag "country", options_from_collection_for_select(@coun, "id", "name"), :prompt => "- Country -", :class => 'form-control', :required => true, :onchange => "prefill_extension(this.value,'extension_for_contact_deal','extension_contact_popup')"
+            .form-group.col-md-6 
+              .input-group
+                %span.input-group-addon#extension_for_contact_deal +1
+                = text_field_tag :work_phone,"", :id=>"work_phone",:value=>"", :class => "form-control bfh-phone","data-format"=>" (ddd) ddd-dddd",:placeholder=>"(999) 999 9999", :required => true
+          .modal-footer
+            .pull-left
+              %button.btn.btn-primary{type: "submit",id: "add_con","data-disable-with" => "Saving...", onclick: "return chk_con_id();"} Save  
+              %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+                %span.c_links
+                  Cancel
+                  
+#dealmoveshow.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content{style: "padding: 10px;"}
+      -@deal= DealMove.new
+      = form_for(@deal,:url=>move_lead_path, :remote => true,  :html=>{:class => "form",:method=>"post",:id=>"move_deal_stage"}) do |f|
+        .modal-header{style: "padding: 5px;"}
+          %span.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} x
+          %h4.modal-title Change Deal Stage
+        .modal-body{style: "padding: 5px;"}
+          .row#user_change_stage 
+            .form-group.col-md-6{style: "line-height:3" }
+              %label
+                Assigned User
+                = select_tag "assigned_to_user", options_for_select(all_org_users.collect {|c| [ c.full_name, c.id ]}), :prompt => '- Users -',:class=>"col-md-3 form-control", :required => true
+                %label.control-label{:for => "assigned_to_user"} - Users -
+                %i.bar
+          .cb
+          .form-group
+            =f.text_area :note ,:class=> "col-md-12 form-control",:html=>{:maxlength=> "80"}, :style=> "resize: none;",:rows=>"3", :id =>"add_note" 
+            %label.control-label{:for => "input"} Note
+            %i.bar
+          .cb
+             
+          %input{:type=>"hidden",:name=>"deal_id",:value=>"",:id=>"deal_id_show"}
+          = f.hidden_field :deal_status
+          //%input{:type=>"hidden",:id=>"extension_contact_popup",:name=> "extension_contact_popup"}
+        
+          
+        .modal-footer{style: "margin-bottom:15px"}
+          .pull-left
+            %button{type: "submit",id: "add_con","data-disable-with" => "Saving...", onclick: "return chk_con_id();"} Save  
+            %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+              %span.c_links
+                Cancel
+=hidden_field_tag 'deal_show', 'dealshow'
+:javascript
+  //$(document).ready(function() {
+  //  $('#note_notes').wysiwyg({
+  //  rmUnusedControls: true,
+  //  controls: {
+  //      bold: { visible : true },
+  //      underline: { visible: true },
+  //      italic: { visible: true },
+  //      insertOrderedList: { visible: true },
+  //      insertUnorderedList: { visible: true }
+  //      
+  //  }
+  //  });
+  //});
+  $(document).ready(function() {
+    initial_more_link();
+    
+    $('#addCon').on('show.bs.modal', function (e) {      
+      $("#comp_name").val("").prop("readonly",false).removeAttr("disabled");
+    });
+    $("#comp_name").prop("readonly",false);
+    if(history.length > 1){
+      $('#hide_back').show();
+    }
+     else{
+      $('#reset_height').addClass("cb10");
+      $('#hide_back').hide();
+     }
+  
+      reload_deal_contacts();
+     
+      $.ajax({
+        type: "GET",
+        url: "/lead_files",
+        data: {dealid: $("#deal_id").val()},
+        async: true,
+        beforeSend: function(){
+          //$("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          //$("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#notes_attach").html(data.responseText);
+        }
+      });
+      $('a.lead_asgn_to').editable({
+        placement: 'bottom',
+        url: '/change_assigned_to',    
+        pk: 1,
+        type: 'select',
+        source: '/get_user_list_lead?from=deal_detail',
+        title: 'Select User',   
+        data: {custom: 'Select User'}, 
+        validate: function(value) {
+          if($.trim(value) == '')
+            return 'Please select user';
+        },
+        success: function(response, newValue) {
+           $("#last_touch_div").html("less than a minute ago")
+           timeout_trigger();
+           $(".assn-user-top .assn-pf-icon").html(response.charAt(0).toUpperCase());
+           //$( ".assn-user-top .assn-pf-icon" ).tooltip({content: respon});
+        }
+      });
+   });
+   function initial_more_link(){
+    var showChar = 200;
+    var ellipsestext = "...";
+    var moretext = "more";
+    var lesstext = "less";
+    $('.more').each(function() {
+        $('.morecomment').show();
+        var content = $(this).html();
+        if(content.length > showChar) {
+            var c = content.substr(0, showChar);
+            var h = content.substr(showChar, content.length - showChar);
+            var html = c + '<span class="moreellipses">' + ellipsestext+ '&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morelink">' + moretext + '</a></span>';
+            $(this).html(html);
+        }
+    });
+  
+    $(".morelink").click(function(){
+        if($(this).hasClass("less")) {
+            $(this).removeClass("less");
+            $(this).html(moretext);
+        } else {
+            $(this).addClass("less");
+            $(this).html(lesstext);
+        }
+        $(this).parent().prev().toggle();
+        $(this).prev().toggle();
+        return false;
+    });
+   }  
+   Array.prototype.removeByValue = function(val) {
+      for(var i=0; i<this.length; i++) {
+          if(this[i] == val) {
+              this.splice(i, 1);
+              break;
+          }
+      }
+  } 
+  function store_cookie(tag,url)
+  {
+    document.cookie="tag="+tag+";path=/";
+    window.location.href = url;
+  }
+  
+  function clear_value(){
+    $('#contactable_id').val('');
+    $('#time_zone_contact').val('Hawaii');
+    $('#work_phone').val('');
+    $('#email').val('');
+    $('#country').val('');
+    $('#extension_for_contact_deal').html('+1');
+    $('#comp_name').val('').prop('readonly',false).removeAttr('disabled');
+    $('#show_er').html('');
+   }
+   function remove_note()
+   {
+    $('#note_notes').val('');
+    //$("#deal_note_div").hide('slow');
+    $("#show_file_name").hide();
+    $(".ajax-file-upload-statusbar").remove();
+    $("#temp_file_ids").val("");
+   }
+   function reload_deal_contacts(){     
+      $.ajax({
+        type: "GET",
+        url: "/lead_detail_contacts",
+        data: {dealid: $("#deal_id").val()},
+        async: true,
+        beforeSend: function(){
+          //$("#task_loader").show();
+        },
+        success: function(data)
+        {
+          //$("#task_loader").hide();
+        },
+        error: function(data) {
+          //$("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#deal_detail_contacts_div").html(data.responseText);
+          $("#task_loader").hide();
+        }
+      });
+   }
+  $("#first_name").keypress(function() {
+  $('#first_name').addClass('loadinggif');
+   setTimeout(hideascontactload, 510);
+  });
+  
+  function reload_task_widget(){
+    $.ajax({
+        type: "POST",
+        url: "/task_widget_reload",
+        dataType: 'json',
+        data: {deal_id: $("#deal_id").val()},
+        async: true,
+        beforeSend: function(){
+          $("#ajax-loader_task").show();
+      
+        },
+        success: function(data)
+        {
+          
+         $("#ajax-loader_task").hide();
+        },
+        error: function(data) {
+          $("#ajax-loader_task").hide();
+        },
+        complete: function(data) {
+          
+          $("#task_header").html(data.responseText);
+          $("#ajax-loader_task").hide();
+          timeout_trigger();
+        }
+    });
+  }
+
+  function hideascontactload()
+  {
+    $('#first_name').removeClass('loadinggif');
+  }
+   $('#show_nt_deal_div').click(function () {
+     //$('#deal_note_div').slideToggle('slow');
+   });
+  //$('.detail_note').hide();
+  $('.note_heading').click(function () {
+      $(this).parent().find('.detail_note').slideToggle();
+      if($(this).find('.span1').attr('id') == 'yes') {
+          $(this).find('.span1').attr('id', '').html('&#x2B;');
+      } else {
+          $(this).find('.span1').attr('id', 'yes').html('&#x96;');
+      }
+    });    
+  function getd(id){
+    $('#'+id).val($('textarea').val().replace(/\n/g, "<br />"));
+  }
+  $( window ).load(function() {
+    timeout_trigger();
+    $('a[rel="tooltip"],i,input:checkbox,button,div,span').powerTip({smartPlacement: true,fadeInTime: 100,fadeOutTime: 200});
+  });
+  //setTimeout('timeout_trigger()', 1000);
+  function timeout_trigger(){
+    deal_id = $('#deal_id_timeout').val();
+    $.get( "/fetch_activity?id="+deal_id, function( data ) {
+      $( "#time_line_id" ).html( data );
+    });
+  }
+  function chk_con_id()
+  {
+   var con_id = $("#contactable_id").val();
+   var name = $("#first_name").val();
+   var email = $("#email").val();
+   var deal_contacts_id = $("#deal_contacts_id").val();
+   var trainindIdArray = deal_contacts_id.split(',');
+   if(con_id != ""){
+   for(i = 0; i< trainindIdArray.length; i++){
+     if(trainindIdArray[i] == con_id) {
+       $("#show_er").show();
+       $("#show_er").html('Contact is already associated.');
+       return false
+     }
+     else
+     {
+      $("#show_er").show();
+     }
+   }
+   }
+   var atpos=email.indexOf("@");
+   var dotpos=email.lastIndexOf(".");
+   if (email != '' && (atpos<1 || dotpos<atpos+2 || dotpos+2>=email.length))
+  {
+   $("#show_er_deal_em").show();
+   $("#show_er_deal_em").html('Please enter a valid email address.');
+   return false;
+  }
+  else
+  {
+    $("#show_er_deal_em").hide();
+  }
+  
+  }
+  $('#first_name.typeahead').typeahead([{
+    name: 'contacts',
+    valueKey: 'name',
+    remote: {url: '/get_contacts/'+ #{@current_user.organization_id}+ '?q=%QUERY'},
+    template: "<p style='word-wrap: break-word;'><strong>{{name}}</strong> - {{email}}</p>",
+    engine: Hogan
+    }]).on('typeahead:selected',onSelected).on('typeahead:opened',onOpened);
+  function onSelected($e,datum){
+    console.log("autocompleted");
+    console.log(datum);
+    //alert(datum);
+           
+    //    var hfield = document.getElementById('hfield');
+    var email = document.getElementById('email');
+    var country = document.getElementById('country');
+    var workphone = document.getElementById('work_phone');
+    var comp_name = document.getElementById('comp_name');
+    var time_zone = document.getElementById('time_zone_contact');
+    if((datum.company_type == "IndividualContact" && datum.company_name != "") || datum.company_type == "CompanyContact")
+    {
+      comp_name.value = datum.comp_name;
+      $("#comp_name").prop("readonly",true).prop("disabled",true);
+    }
+   console.log(datum.id);
+    //    hfield.value = datum.id;
+    $("#contactable_id").val(datum.id);
+    $("#contactable_type").val(datum.company_type);
+    email.value = datum.email;
+    country.value=datum.country_id;
+    workphone.value = datum.phone_no;
+    time_zone.value = datum.time_zone;
+    $("#country").trigger("change");
+  }
+  function onOpened($e){
+  //$("#contactable_id").val("")
+  console.log('Opned');
+  }
+  function hide_box()
+  {
+   $("#note_notes").animate({height:'40px'});
+   $(".other_note_fields").hide(400);
+   $(".btn_upload").hide(400);
+   $(".file_des").hide(400);
+   $(".sav_btn").hide(400);
+  }
+  //$('textarea').focus(function(){
+      //$(this).animate({height:'100px'});
+      //$(".other_note_fields").show(400);
+      //$(".sav_btn").show(400);
+  //});
+  
+  //$('#upld_file').click(function(){
+      //$(this).animate({height:'17px'});
+      //$(".btn_upload").show(400);
+      //$(".file_des").show(400);
+  //});
+  $('.company_value_typeahead').typeahead([{
+    name: 'company_contacts',
+    valueKey: 'company_name',
+    remote: {url: '/get_companies/'+ #{current_user.organization.id}+ '?q=%QUERY'},
+    template: '<p><strong>{{company_name}}</strong></p>',
+    engine: Hogan
+    }]).on('typeahead:selected',onSelectedCompTask).on('typeahead:opened',onCompOpened);
+   
+  function onSelectedCompTask($e,datum){
+    var hfield = document.getElementById('comp_id');
+    var ctime_zone = document.getElementById('time_zone_contact');
+    hfield.value = datum.id;
+    ctime_zone.value = datum.time_zone;
+  }
+  function onCompOpened($e){
+    //$("#comp_id").val("")
+  }
+  
+  
+  function onCompClosed($e){
+    //$("#comp_id").val("");
+  }  
+  $('textarea').blur(function(){
+     // var note_val = $("#note_notes").val();
+     //if(note_val == "")
+     //$(this).animate({height:'40px'});
+  }); 
+  function task_deal(deal_id)
+  {
+  $("#task_taskable_type").val('Deal');
+  $("#task_taskable_id").val(deal_id);
+  }
+  function move_deal_status_wise(deal_id,status,is_current)
+  {
+    $("#deal_move_note").val('');
+    $("#deal_id_move").val(deal_id);
+    if(status == 1 || status == 3 || status == 6)
+    {
+      $("#incoming_move").show();
+      $("#pipeline_move").hide();
+    }
+    else
+    {
+      $("#incoming_move").hide();
+      $("#pipeline_move").show();
+    }
+    if(is_current == true)
+    {
+      $("#deal_move_is_current").attr("checked", true);
+    }
+    else
+    {
+      $("#deal_move_is_current").attr("checked", false);
+    }
+  }
+
+  /*auto expandable textarea */
+  var txt = $('#note_notes'),
+      hiddenDiv = $(document.createElement('div')),
+      content = null;
+  
+  txt.addClass('txtstuff');
+  hiddenDiv.addClass('hiddendiv common');
+  
+  $('body').append(hiddenDiv);
+  
+  txt.on('keyup', function () {
+  
+      content = $(this).val();
+  
+      content = content.replace(/\n/g, '<br>');
+      hiddenDiv.html(content + '<br class="lbr">');
+  
+      $(this).css('height', hiddenDiv.height()+20);
+  
+  });
+
+  function change_stage(user, deal, name,obj){
+   if(obj == 4){$('select#assigned_to_user').val($("#deal_assignid").val());$("#user_change_stage").hide();}
+   else if(obj == 5){$('select#assigned_to_user').val("#{@current_user.id}");$("#user_change_stage").hide();}
+   else{
+     if(obj == 6)
+    {
+      $('select#assigned_to_user').val("#{@current_user.id}");
+     }else{$('select#assigned_to_user').val($("#deal_assignid").val());}
+     $("#user_change_stage").show();
+    }
+    if(obj == 3 || obj == 5 || obj == 6){
+      $('#add_note').attr('required',true);
+     }else{$('#add_note').attr('required',false);}
+   var asg_id = $("#deal_assignid").val();
+   $("#dealmoveshow").modal('show');
+   $("#deal_id_show").val(deal);
+   $("#deal_move_deal_status").val(user);
+  } 
+ 
+  function change_assign(user, deal,name){
+   
+   $("#deal_assignid").val(user)
+   $("#chng_asgn").html('<img src= "/assets/loading.gif"/><span class="caret"></span>');
+   var posturl= "/reassign_user_to_deals";
+    var qstring= "?reassign_deal_ids="+deal+"&reassigned_to="+user;
+    $.ajax( {
+      type: "POST",
+      url: posturl + qstring,
+      success: function(result) {
+        //window.location.reload();
+        //alert(result);
+        $("#chng_asgn").delay(1000).html(name + '<span class="caret"></span>');
+      }
+    });
+ 
+  }
+  function edit_deal_popup(id){
+    $.ajax({
+      type: "POST",
+      url: "/edit_lead",
+      dataType: 'json',
+      async: true,
+      data: {id:id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#edit_deal").html(data.responseText);
+        $("#task_loader").hide();
+      }
+    });
+  }
+  
+  $('#associate_con').bind('ajax:complete', function(evt, data, status, xhr){
+    $("#addCon").modal('hide');
+    $("#show_loader").show();
+    reload_deal_contacts();
+    $("#show_loader").hide();
+    $(document).trigger("add-alerts", [{'message': data.responseText ,'priority': 'success'}]);
+  });
+  function delete_contact(id){
+    if(confirm("Do you want to delete the contact?")){
+      $.ajax({
+        type: "DELETE",
+        url: "/delete_lead_con",
+        dataType: 'json',
+        async: true,
+        data: {id:id},
+        beforeSend: function(){
+          $("#show_loader").show();
+        },
+        success: function(data)
+        {
+          //$("#task_loader").hdie();
+        },
+        error: function(data) {
+          //$("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#show_loader").show();
+          reload_deal_contacts();
+          $("#show_loader").hide();
+          $(document).trigger("add-alerts", [{'message': "Contact has been deleted successfully." ,'priority': 'success'}]);
+        }
+      });
+    } else {
+        return false;
+    }
+  }
+  $('#move_deal_stage').bind('ajax:complete', function(evt, data, status, xhr){
+    $("#dealmoveshow").modal('hide');
+    if(data.responseJSON.deal_org_id == 4)
+     $("a#chng_stg").html(data.responseJSON.stag_name).removeAttr("href").removeAttr("class").removeAttr("data-toggle").css({ "color":"green",  "text-decoration":"none"});
+    else
+      $("a#chng_stg").html(data.responseJSON.stag_name + '<span class="caret"></span>');
+    $("#last_touch_div").text(data.responseJSON.last_touch);    
+    $('.lead_asgn_to').text(data.responseJSON.assigned_user).attr("data-value", data.responseJSON.assigned_user_id);
+    $("#last_touch_div").html("less than a minute ago")
+    timeout_trigger();
+    //reload_task_widget();
+    $(document).trigger("add-alerts", [{'message': data.responseJSON.msg ,'priority': 'success'}]);
+  });
+
+
+
+  $('.profile_time_zone').editable({
+      url: '/save_contact_timezone',
+      pk: $("#contact_type").val(),
+      title: 'Enter time zone',
+      type: 'select',
+      placement: 'top',
+      validate: function(value) {
+        if($.trim(value) == '' || $.trim(value) == 'NA')
+          return 'Please enter time zone';
+       
+      },
+      source: [
+              {value: 'Hawaii', text:'(GMT-10:00) Hawaii'},
+              {value: 'Alaska', text:'(GMT-09:00) Alaska'},
+              {value: 'Pacific Time (US & Canada)', text:'(GMT-08:00) Pacific Time (US & Canada)'},
+              {value: 'Arizona', text:'(GMT-07:00) Arizona'},
+              {value: 'Mountain Time (US & Canada)', text:'(GMT-07:00) Mountain Time (US & Canada)'},
+              {value: 'Central Time (US & Canada)', text:'(GMT-06:00) Central Time (US & Canada)'},
+              {value: 'Eastern Time (US & Canada)', text:'(GMT-05:00) Eastern Time (US & Canada)'},
+              {value: 'Indiana (East)', text:'(GMT-05:00) Indiana (East)'},
+              {value: '', text:'-------------'},
+              {value: 'American Samoa', text:'(GMT-11:00) American Samoa'},
+              {value: 'International Date Line West', text:'(GMT-11:00) International Date Line West'},
+              {value: 'Midway Island', text:'(GMT-11:00) Midway Island'},
+              {value: 'Tijuana', text:'(GMT-08:00) Tijuana'},
+              {value: 'Chihuahua', text:'(GMT-07:00) Chihuahua'},
+              {value: 'Mazatlan', text:'(GMT-07:00) Mazatlan'},
+              {value: 'Central America', text:'(GMT-06:00) Central America'},
+              {value: 'Guadalajara', text:'(GMT-06:00) Guadalajara'},
+              {value: 'Mexico City', text:'(GMT-06:00) Mexico City'},
+              {value: 'Monterrey', text:'(GMT-06:00) Monterrey'},
+              {value: 'Saskatchewan', text:'(GMT-06:00) Saskatchewan'},
+              {value: 'Bogota', text:'(GMT-05:00) Bogota'},
+              {value: 'Lima', text:'(GMT-05:00) Lima'},
+              {value: 'Quito', text:'(GMT-05:00) Quito'},
+              {value: 'Caracas', text:'(GMT-04:30) Caracas'},
+              {value: 'Atlantic Time (Canada)', text:'(GMT-04:00) Atlantic Time (Canada)'},
+              {value: 'Georgetown', text:'(GMT-04:00) Georgetown'},
+              {value: 'La Paz', text:'(GMT-04:00) La Paz'},
+              {value: 'Santiago', text:'(GMT-04:00) Santiago'},
+              {value: 'Newfoundland', text:'(GMT-03:30) Newfoundland'},
+              {value: 'Brasilia', text:'(GMT-03:00) Brasilia'},
+              {value: 'Buenos Aires', text:'(GMT-03:00) Buenos Aires'},
+              {value: 'Greenland', text:'(GMT-03:00) Greenland'},
+              {value: 'Mid-Atlantic', text:'(GMT-02:00) Mid-Atlantic'},
+              {value: 'Azores', text:'(GMT-01:00) Azores'},
+              {value: 'Cape Verde Is', text:'(GMT-01:00) Cape Verde Is.'},
+              {value: 'Casablanca', text:'(GMT+00:00) Casablanca'},
+              {value: 'Dublin', text:'(GMT+00:00) Dublin'},
+              {value: 'Edinburgh', text:'(GMT+00:00) Edinburgh'},
+              {value: 'Lisbon', text:'(GMT+00:00) Lisbon'},
+              {value: 'London', text:'(GMT+00:00) London'},
+              {value: 'Monrovia', text:'(GMT+00:00) Monrovia'},
+              {value: 'UTC', text:'(GMT+00:00) UTC'},
+              {value: 'Amsterdam', text:'(GMT+01:00) Amsterdam'},
+              {value: 'Belgrade', text:'(GMT+01:00) Belgrade'},
+              {value: 'Berlin', text:'(GMT+01:00) Berlin'},
+              {value: 'Bern', text:'(GMT+01:00) Bern'},
+              {value: 'Bratislava', text:'(GMT+01:00) Bratislava'},
+              {value: 'Brussels', text:'(GMT+01:00) Brussels'},
+              {value: 'Budapest', text:'(GMT+01:00) Budapest'},
+              {value: 'Copenhagen', text:'(GMT+01:00) Copenhagen'},
+              {value: 'Ljubljana', text:'(GMT+01:00) Ljubljana'},
+              {value: 'Madrid', text:'(GMT+01:00) Madrid'},
+              {value: 'Paris', text:'(GMT+01:00) Paris'},
+              {value: 'Prague', text:'(GMT+01:00) Prague'},
+              {value: 'Rome', text:'(GMT+01:00) Rome'},
+              {value: 'Sarajevo', text:'(GMT+01:00) Sarajevo'},
+              {value: 'Skopje', text:'(GMT+01:00) Skopje'},
+              {value: 'Stockholm', text:'(GMT+01:00) Stockholm'},
+              {value: 'Vienna', text:'(GMT+01:00) Vienna'},
+              {value: 'Warsaw', text:'(GMT+01:00) Warsaw'},
+              {value: 'West Central Africa', text:'(GMT+01:00) West Central Africa'},
+              {value: 'Zagreb', text:'(GMT+01:00) Zagreb'},
+              {value: 'Athens', text:'(GMT+02:00) Athens'},
+              {value: 'Bucharest', text:'(GMT+02:00) Bucharest'},
+              {value: 'Cairo', text:'(GMT+02:00) Cairo'},
+              {value: 'Harare', text:'(GMT+02:00) Harare'},
+              {value: 'Helsinki', text:'(GMT+02:00) Helsinki'},
+              {value: 'Istanbul', text:'(GMT+02:00) Istanbul'},
+              {value: 'Jerusalem', text:'(GMT+02:00) Jerusalem'},
+              {value: 'Kyiv', text:'(GMT+02:00) Kyiv'},
+              {value: 'Pretoria', text:'(GMT+02:00) Pretoria'},
+              {value: 'Riga', text:'(GMT+02:00) Riga'},
+              {value: 'Sofia', text:'(GMT+02:00) Sofia'},
+              {value: 'Tallinn', text:'(GMT+02:00) Tallinn'},
+              {value: 'Vilnius', text:'(GMT+02:00) Vilnius'},
+              {value: 'Baghdad', text:'(GMT+03:00) Baghdad'},
+              {value: 'Kuwait', text:'(GMT+03:00) Kuwait'},
+              {value: 'Minsk', text:'(GMT+03:00) Minsk'},
+              {value: 'Nairobi', text:'(GMT+03:00) Nairobi'},
+              {value: 'Riyadh', text:'(GMT+03:00) Riyadh'},
+              {value: 'Tehran', text:'(GMT+03:30) Tehran'},
+              {value: 'Abu Dhabi', text:'(GMT+04:00) Abu Dhabi'},
+              {value: 'Baku', text:'(GMT+04:00) Baku'},
+              {value: 'Moscow', text:'(GMT+04:00) Moscow'},
+              {value: 'Muscat', text:'(GMT+04:00) Muscat'},
+              {value: 'St. Petersburg', text:'(GMT+04:00) St. Petersburg'},
+              {value: 'Tbilisi', text:'(GMT+04:00) Tbilisi'},
+              {value: 'Volgograd', text:'(GMT+04:00) Volgograd'},
+              {value: 'Yerevan', text:'(GMT+04:00) Yerevan'},
+              {value: 'Kabul', text:'(GMT+04:30) Kabul'},
+              {value: 'Islamabad', text:'(GMT+05:00) Islamabad'},
+              {value: 'Karachi', text:'(GMT+05:00) Karachi'},
+              {value: 'Tashkent', text:'(GMT+05:00) Tashkent'},
+              {value: 'Chennai', text:'(GMT+05:30) Chennai'},
+              {value: 'Kolkata', text:'(GMT+05:30) Kolkata'},
+              {value: 'Mumbai', text:'(GMT+05:30) Mumbai'},
+              {value: 'New Delhi', text:'(GMT+05:30) New Delhi'},
+              {value: 'Sri Jayawardenepura', text:'(GMT+05:30) Sri Jayawardenepura'},
+              {value: 'Kathmandu', text:'(GMT+05:45) Kathmandu'},
+              {value: 'Almaty', text:'(GMT+06:00) Almaty'},
+              {value: 'Astana', text:'(GMT+06:00) Astana'},
+              {value: 'Dhaka', text:'(GMT+06:00) Dhaka'},
+              {value: 'Ekaterinburg', text:'(GMT+06:00) Ekaterinburg'},
+              {value: 'Rangoon', text:'(GMT+06:30) Rangoon'},
+              {value: 'Bangkok', text:'(GMT+07:00) Bangkok'},
+              {value: 'Hanoi', text:'(GMT+07:00) Hanoi'},
+              {value: 'Jakarta', text:'(GMT+07:00) Jakarta'},
+              {value: 'Novosibirsk', text:'(GMT+07:00) Novosibirsk'},
+              {value: 'Beijing', text:'(GMT+08:00) Beijing'},
+              {value: 'Chongqing', text:'(GMT+08:00) Chongqing'},
+              {value: 'Hong Kong', text:'(GMT+08:00) Hong Kong'},
+              {value: 'Krasnoyarsk', text:'(GMT+08:00) Krasnoyarsk'},
+              {value: 'Kuala Lumpur', text:'(GMT+08:00) Kuala Lumpur'},
+              {value: 'Perth', text:'(GMT+08:00) Perth'},
+              {value: 'Singapore', text:'(GMT+08:00) Singapore'},
+              {value: 'Taipei', text:'(GMT+08:00) Taipei'},
+              {value: 'Ulaan Bataar', text:'(GMT+08:00) Ulaan Bataar'},
+              {value: 'Urumqi', text:'(GMT+08:00) Urumqi'},
+
+              {value: 'Irkutsk', text:'(GMT+09:00) Irkutsk'},
+              {value: 'Osaka', text:'(GMT+09:00) Osaka'},
+              {value: 'Sapporo', text:'(GMT+09:00) Sapporo'},
+              {value: 'Seoul', text:'(GMT+09:00) Seoul'},
+              {value: 'Tokyo', text:'(GMT+09:00) Tokyo'},
+              {value: 'Adelaide', text:'(GMT+09:30) Adelaide'},
+              {value: 'Darwin', text:'(GMT+09:30) Darwin'},
+              {value: 'Brisbane', text:'(GMT+10:00) Brisbane'},
+              {value: 'Canberra', text:'(GMT+10:00) Canberra'},
+              {value: 'Guam', text:'(GMT+10:00) Guam'},
+              {value: 'Hobart', text:'(GMT+10:00) Hobart'},
+              {value: 'Melbourne', text:'(GMT+10:00) Melbourne'},
+              {value: 'Port Moresby', text:'(GMT+10:00) Port Moresby'},
+              {value: 'Sydney', text:'(GMT+10:00) Sydney'},
+              {value: 'Yakutsk', text:'(GMT+10:00) Yakutsk'},
+              {value: 'New Caledonia', text:'(GMT+11:00) New Caledonia'},
+              {value: 'Vladivostok', text:'(GMT+11:00) Vladivostok'},
+              {value: 'Auckland', text:'(GMT+12:00) Auckland'},
+              {value: 'Fiji', text:'(GMT+12:00) Fiji'},
+              {value: 'Kamchatka', text:'(GMT+12:00) Kamchatka'},
+              {value: 'Magadan', text:'(GMT+12:00) Magadan'},
+              {value: 'Marshall Is.', text:'(GMT+12:00) Marshall Is.'},
+              {value: 'Solomon Is.', text:'(GMT+12:00) Solomon Is.'},
+              {value: 'Wellington', text:'(GMT+12:00) Wellington'},
+              {value: 'Nuku alofa', text:'(GMT+13:00) Nuku alofa'},
+              {value: 'Samoa', text:'(GMT+13:00) Samoa'},
+              {value: 'Tokelau Is', text:'(GMT+13:00) Tokelau Is'}
+      ],
+      success: function(data) {
+       name =$("#cur_selected_contact").val();
+       $("#my_curtime"+name).html(data);
+       $(".profile_time_zone").css({"color": "#3E6BA1","font-style": "normal"});
+       $(".current-time").html(data);
+      },
+      error: function(data) {
+        //alert('error') 
+        /* actions on validation error (or ajax error) */
+        var msg = '';
+        if(data.errors) { //validation error
+          $.each(data.errors, function(k, v) { msg += k+": "+v+"<br>"; });
+        } 
+        else if(data.responseText) { //ajax error
+        msg = data.responseText;
+      }
+    }
+    });
+  function changePriority(id,priority,priority_id){
+    $("#task_loader").show();
+    $.ajax({
+      url: "/change_priority",
+      data: {id: id,priority_id: priority_id},
+      success: function(data){ 
+        //alert("Success");
+        if(priority=="Hot")
+          pr_cl = "hot_pri"
+        else if(priority=="Warm")
+          pr_cl = "warm_pri"
+        else
+          pr_cl = "cold_pri"
+        $(".priority_label").removeClass("hot_pri warm_pri cold_pri").addClass(pr_cl);
+        $(".priority_label").html(data);
+        $(".priority_border").removeClass("hot_border warm_border cold_border");
+        $(".priority_border").addClass(data.toLowerCase()+"_border");
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        $("#task_loader").hide();
+        alert('Got an error while changing priority.');
+      }
+    });
+  }
+  

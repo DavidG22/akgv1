@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  deal: 
+  user_ids: MyString
+  alert_time: MyString
+  time_zone: MyString
+  frequency: MyText
+
+two:
+  deal: 
+  user_ids: MyString
+  alert_time: MyString
+  time_zone: MyString
+  frequency: MyText

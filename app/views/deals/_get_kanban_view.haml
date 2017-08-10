@@ -1,0 +1,104 @@
+:css 
+  .draggable{position:relative;}
+.table-content  
+  - unless @deal_statuses.present?
+    - @deal_statuses = @current_organization.deal_statuses.where(is_kanban: true)
+  - @deal_statuses.each do |deal_status|
+    / Select Lead where a match found from status of the current lead
+    - deals = current_user.organization.deals.where(deal_status_id: deal_status.id).order("id DESC")
+    - deal_count = deals.count
+    .status_container.droppable_stage.col-md-3{name: "#{deal_status.name}", style: "padding-left:0"}
+      .inner_one  
+        / Header of the Lead Status
+        .status_header.fr
+          /.status_header-hdr-chev.status_header-hdr-chev-bf
+          .fl
+            =deal_status.name
+          .fr
+            %b
+              = deal_count        
+          /.status_header-hdr-chev.status_header-hdr-chev-af
+          .clearfix
+        / Content of Lead status
+        .cb
+        .status_content{style: "color: #666"}
+          - if deal_count == 0
+            .fl.no_lead_found
+              = "No lead found..."
+            .cb
+          -else
+            - deals.each do |deal|
+              .kanban-inner-container.row.draggable_lead.draggable.pr{id: "status_#{deal.id}", draggable: "true", name: "#{deal.id}", title: "Drag Lead to change Status"}
+                - if !deal.assigned_to.nil?
+                  - user = User.find_by_id(deal.assigned_to)
+                  - assn_user_id = user.id if user
+                  - assn_user = user.first_name.present? ? user.first_name : user.email if user
+                - else
+                  - assn_user_id = 'null'
+                .cb
+                .fl
+                  .profileIcon.fl{style: "background: #{deal.get_color_code(deal.contact_name.downcase[0])}"}
+                    = deal.title[0].upcase 
+                .fl.status_middle_content
+                  .kanban_title
+                    %a.title{href: "/leads/#{deal.to_param}", style: "font-weight: normal;color: #0099CB"}
+                      - if deal.title.size > 20 
+                        %span{title: "#{deal.title}"}  
+                          = deal.title.truncate(20)
+                      - else 
+                        = deal.title
+                .cb
+                .kanban_bottom_content
+                  .fl.ft-12
+                    - deal_contact = deal.deals_contacts.first.contactable if deal.deals_contacts.present?
+                    - if deal_contact.present? && deal.deals_contacts.first.contactable.class.name == "IndividualContact"
+                      %a.kanban_text_height{href: "/contact/#{deal.deals_contacts.first.contactable.to_param}",title: deal_contact.full_name.present? ? deal_contact.full_name : deal_contact.email}
+                        = deal_contact.full_name.present? ? deal_contact.full_name.truncate(15) : deal_contact.email.truncate(15)
+
+                  .fr.ft-12             
+                    - if !assn_user.nil?
+                      %span.kanban_text_height{title: "Assigned to - #{assn_user}"}
+                        /= truncate(assn_user, :length => 15, :separator => '...')
+                        = assn_user.length > 15 ? assn_user[0..12] + ".." : assn_user
+                  .cb
+                  .fl.ft-12.kanban_text_height
+                    $
+                    = deal.amount.present? ? "#{deal.amount}" : "0.0"
+                  .fr.days.kanban_text_height
+                    = (Date.today - deal.created_at.to_date).to_i.to_s + " days ago"
+                  .cb
+                  .csm-drop-menu.dropdown{style: "height:12px;width:13px"}
+                    %img.dropdown-toggle{:src => "../assets/more_icon.ico","data-toggle" => "dropdown", style: "width: 100%"}
+                    %ul.edit_list_content.dropdown-menu{style: "top: -154px;right: 13px;"}
+                      %li
+                        %a{"data-toggle" => "modal", href: "#taskModal", rel: "tooltip", title: "Add a Task",onclick: "$('#task_referrer').val('Kanban View');task_deal(#{deal.id})", "data-id" => deal.id} 
+                          %span.add_i_deal
+                          %span Add Task
+                      %li
+                        %a{"data-target" => "#noteModal", "data-toggle" => "modal", href: "javascript:",  onclick: "$('#notable_id').val(#{deal.id});$('#notable_type').val('Deal');", title: "Add Note"} 
+                          %span.add_i_note
+                          %span Add Note
+                      %li
+                        %a{"data-target" => "#SendEmailModal", "data-toggle" => "modal", href: "javascript:",onclick: "$('#send-mail-popup')[0].reset();$('#to').val('#{deal_contact.email if deal_contact.present? && deal.deals_contacts.first.contactable.class.name == 'IndividualContact'}');$('#mailer_id').val(#{deal.id});$('#mailer_type').val('Deal');$('.error').html('');", title: "Send Email"} 
+                          %span.glyphicon.glyphicon-envelope
+                          %span Send Email
+                      %li
+                        %a{href: edit_lead_path(deal.to_param), title: "Edit"} 
+                          %span.glyphicon.glyphicon-edit
+                          %span Edit
+                      / %li
+                      /   =link_to("Delete", lead_path(deal.id), :method => :delete, :confirm => "Do you want to delete the lead?")
+                      %li
+                        =link_to "javascript:void(0)", onclick: "deleteLead(this)", data: { id: deal.id }, title: "Delete" do 
+                          %span.glyphicon.glyphicon-trash
+                          %span Delete
+                      - deal_status = DealStatus.find(deal.deal_status_id)
+                      - if deal_status.name != "Won"
+                        %li                        
+                          %a.movedealincomepop{"data-toggle" => "modal", href: "#dealmoveModal", rel: "popup", title: "Move Lead",onclick: "move_deal(#{deal.id},#{assn_user_id})", "data-id" => deal.id}
+                            %span.add_i_move
+                            %span  Move Lead
+                .cb
+                - deal_priority = deal.priority_type.present? && deal.priority_type.name.present? ? deal.priority_type.name.downcase : "na"
+                .priority_dot{:class => "pri_col_#{deal_priority}",title: "Lead Type: #{deal_priority}"}
+  .cb

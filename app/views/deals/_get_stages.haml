@@ -1,0 +1,45 @@
+- all_stages = @current_organization.deal_statuses
+- if @page == "lead_listing"
+  - all_stages.each do |stage|
+    %li{onclick: "changeLeadStage(#{@lead.id}, #{stage.id})"}
+      = stage.name
+    %li.divider
+- elsif @page == "lead_details"
+  - all_stages.each do |stage|
+    %li{onclick: "changeLeadStageInLeadDetails(#{@lead.id}, #{stage.id})"}
+      = stage.name
+    %li.divider
+:javascript
+  function changeLeadStage(id, stage_id,page){
+    $("#task_loader").show();
+    $.ajax({
+      url: "/change_lead_stage",
+      data: {id: id,stage_id: stage_id,page: page},
+      success: function(data){ 
+        //alert("Success");
+        $(".lead-stages-cntr .lead-"+id).html(data);
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        $("#task_loader").hide();
+        alert('Got an error while changing priority.');
+      }
+    });
+  }
+
+  function changeLeadStageInLeadDetails(id, stage_id){
+    $("#task_loader").show();
+    $.ajax({
+      url: "/change_lead_stage_in_lead_details",
+      data: {id: id,stage_id: stage_id},
+      success: function(data){ 
+        $(".lead-details-page .deal_status_name").html(data);
+        $(".lead-details-page .deal_status_name").attr("tooltipText",data);
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        $("#task_loader").hide();
+        alert('Got an error while changing priority.');
+      }
+    });
+  }

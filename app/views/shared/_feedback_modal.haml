@@ -1,0 +1,38 @@
+#feedbackModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog.cstm-material-modal
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal",} ×
+        %h4.modal-title Send Feedback
+      .modal-body
+        #contact-alert-msg.alert.fade.in.alert-danger{style: "display:none;"}
+          %button.close{onclick: "$('#contact-alert-msg').hide();$('#loader').hide();"} x
+          #contact_msg_div
+        = form_tag "/send_feedback", :class => "form",:method=>"post",:id=>"send_feedback", :remote => true do |f|
+          .individual_added_info_div
+            .form-group
+              %input#first_name.inp_txt{name: 'name',type: 'text', value: '', required: 'true',onkeyup: 'return onlycharacters(event)', onkeydown: 'return onlycharacters(event)',onblur: "this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"}/
+              %label.control-label.title-lbl{:for => "input"} Name
+              %i.bar
+            .form-group
+              %input#email.inp_txt{name: 'email',type: 'email', value: '', required: 'true'}
+              %label{id:'email_err_ind',style: 'display:none',class: 'error'} 
+              %label.control-label.title-lbl{:for => "input"} Email
+              %i.bar
+            .form-group
+              =text_field_tag 'company', '',:size=>'32' ,:class=>'company_name_typeahead custom-frm-inner', 'data-provide'=> 'typeahead' , :autocomplete=>'off', onkeyup:"$('#text_loader').show()"
+              %label.control-label.title-lbl{:for => "input"} Company name
+              %i.bar
+              =hidden_field_tag 'company_id'
+            .form-group
+              %textarea#description.inp_txt{name: 'description', class: 'form-control',type: 'text', value: ''}
+              %label.control-label.title-lbl{:for => "input"} Description
+              %i.bar
+
+          .modal-footer
+            .navbar-left
+              = submit_tag "Send Feedback", class: "btn btn-primary", disable_with: "Please wait..."
+              %a{href:'#', 'aria-hidden' => 'true', 'data-dismiss' => 'modal'}
+                %span.c_links
+                  Cancel
+

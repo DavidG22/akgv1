@@ -1,0 +1,161 @@
+!!!
+%html{lang: "en"}
+  %meta{charset: "utf-8"}
+  %meta{content: "IE=Edge,chrome=1", "http-equiv" => "X-UA-Compatible"}
+  %meta{content: "We understand the complexity involved in sales process. Now you can streamline your sales activities and improve your productivity through our simple and easy to use CRM. Try this for Free !", name: "description"}
+  %title= content_for?(:title) ? yield(:title) : "WakeUpSales | Ruby on Rails based Open Source CRM Tool"
+  = javascript_include_tag "application"
+  = stylesheet_link_tag   "application", :media => "all"
+  = stylesheet_link_tag "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+  = csrf_meta_tags
+  = favicon_link_tag 'fav-icon.png', :rel => 'shortcut icon'
+  - if(Rails.env == "production")
+    :javascript
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-47612570-1', 'wakeupsales.com');
+      ga('send', 'pageview');
+  -if user_signed_in?  
+    %body.nav-md
+      /= render :partial => "shared/header"
+      .body{style:"min-height:100%;height:100%"}
+        .col-md-12{style:"padding:0"}
+          .top_nav
+            = render :partial => "shared/top_header"
+        .col-md-12{style:"padding:0;min-height:100%;height:100%"}
+          .left_col.menu_fixed
+            = render :partial => "shared/left_sidebar"
+          .right-container{style: "background:#EFF0F1;"} 
+            %div{style: "clear:both;"}
+            %div{"data-alerts" => "alerts", "data-fade" => "3000", "data-ids" => "myid", "data-titles" => "", :class=>"col-md-12"}
+            %div#search_result
+            - if (bootstrap_flash.include?("Signed out successfully.") || bootstrap_flash.include?("Signed in successfully."))
+            - else
+              = bootstrap_flash
+            = yield
+            .cb
+          .footer-after-login
+            .col-md-3.padrht
+              %p 
+                Version
+                %span.badge.badge-info
+                  4.0
+            .col-md-2.text-center
+              %b Need Help?
+              %a{href: "https://www.wakeupsales.com/contact_us", target: "_blank"}
+                Click here!
+            .col-md-3.text-center
+              / %a{"data-toggle" => "modal", href: "#feedbackModal",rel: "tooltip", title: "Send feedback"} 
+              /   %span Feedback
+              %a{href: "mailto:support@wakeupsales.org", target: "_top", title: "Send feedback"}
+                %span.cwkp-sprite.top-arrow.feedback
+                %span
+                  support@wakeupsales.org
+            .col-md-4.text-right
+              %p 
+                Last activity |  
+                %b 
+                  = @current_organization.name
+                = "| #{}"
+                - if @current_organization.present? && @current_organization.activities.present?  
+                  - if dt = @current_organization.activities.last.created_at
+                    - today = Time.zone.now.strftime('%Y-%m-%d')
+                    - yesterday = (Time.zone.now - (24 * 60 * 60)).strftime('%Y-%m-%d')
+                    - day_before_yesterday = (Time.zone.now - (48 * 60 * 60)).strftime('%Y-%m-%d')
+                    
+                    %span{:id => "activityHead"} 
+                      - if (Date.today.to_s == DateTime.parse(dt.to_s).strftime('%Y-%m-%d').to_s)
+                        Today
+                        = DateTime.parse(dt.to_s).strftime('%H:%M').to_s
+                      - else
+                        - if (yesterday.to_s == DateTime.parse(dt.to_s).strftime('%Y-%m-%d').to_s)
+                          Yesterday
+
+                          = DateTime.parse(dt.to_s).strftime('%H:%M').to_s
+                        - else
+                          = dt.strftime("%b %d, %Y %H:%M")
+                  - else
+                    = "NA"
+            .cb
+
+      #task_loader{style: "display:none;position: fixed;margin-top:50px; height: 100%; width: 100%; z-index: 99999; background:#fff; top:0px; left:0px;opacity:0.4"}
+        %div{:class=>"loader_img",style: "width:100%; text-align:center; dispay:table-cell; vertical-align:middle; margin-top:250px"}
+          = image_tag "ajax-loader2.gif"
+      .cb
+
+
+  - else
+    = render :partial => "shared/header"
+    = yield
+    = render :partial => "shared/footer"
+- if user_signed_in?
+  - unless current_user.is_siteadmin?
+    = render :partial => "shared/deal"
+    = render :partial => "shared/add_contact"
+    = render :partial => "shared/notes_attachment"
+    = render :partial => "shared/send_email"
+    = render :partial => "shared/apply_label"
+    = render :partial => "users/invite_user"
+    = render :partial => "tasks/task_popup"
+    = render :partial => "tasks/google_calendar_popup"
+    - if params[:controller] == "deals"
+      = render :partial => "shared/bulk_lead"
+      
+:javascript
+  var pathname = window.location.pathname; // Returns path only
+  if( pathname == "/" || pathname == "/dashboard" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#home").addClass("activ_menu");
+    $("#home .d-bord").css({"background-position":"-472px 3px","color":"#000"});
+  }
+  else
+  if( document.URL.indexOf("leads/kanban") >= 0 ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#leads_kanban_view").addClass("activ_menu");
+    $("#leads_kanban_view .kanban").css({"background-position":"-471px -53px","color":"#000","height":"22px"});
+  }
+  else
+  if( pathname == "/leads" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#leads").addClass("activ_menu");
+    $("#leads .lds").css({"background-position":"-474px -25px","color":"#000"});
+  }
+  
+  else
+  if( pathname == "/tasks" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#tasks").addClass("activ_menu");
+    $("#tasks .task").css({"background-position":"-472px -80px","color":"#000"});
+  }
+  else
+  if( pathname == "/contacts" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#contacts").addClass("activ_menu");
+    $("#contacts .contact").css({"background-position":"-472px -107px","color":"#000"});
+  }
+  else
+  if( pathname == "/getting_started" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#gettingStarted").addClass("activ_menu");
+    $("#gettingStarted .g-start").css({"background-position":"4px -110px","color":"#000"});
+    $("#gettingStarted .menu_name").addClass("sel-g-start");
+  }
+  else
+  if( pathname == "/users" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#users").addClass("activ_menu");
+    $("#users .users").css({"background-position":"-472px -134px","color":"#000"});
+  }
+  else
+  if( pathname == "/daily_updates" ){
+    $(".active_class li").removeClass("activ_menu");
+    $("#daily_update").addClass("activ_menu");
+    $("#daily_update .daily_update").css({"background-position":"-471px -213px","color":"#000"});
+  }
+
+
+  $('#send_feedback').bind('ajax:complete', function( data, status, xhr) {
+    $('#feedbackModal').modal('hide');
+  });

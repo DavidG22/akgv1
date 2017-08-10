@@ -1,0 +1,121 @@
+/=javascript_include_tag 'bootstrap-wysihtml5-0.0.3'
+/= stylesheet_link_tag 'bootstrap-wysihtml5'
+:css
+  ul.wysihtml5-toolbar a.btn{
+    padding: 8px 5px;
+  }
+  ul.wysihtml5-toolbar .btn-group{
+     border: 0px;
+     margin-top: 0px;  
+  }
+  div.wysiwyg{width: auto !important;}
+  #message-wysiwyg-iframe { width:558px !important;margin-bottom:18px;max-height:130px;}
+  .send_email_field {
+    padding-right: 30px;
+  }
+
+  .send_email_field + .glyphicon {
+    position: absolute;
+    right: 0;
+    padding: 8px 27px;
+  }
+  @-moz-document url-prefix(){
+    #attachment{padding:0;} 
+  }
+#SendEmailModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "SendEmailModal", role: "dialog", tabindex: "-1"}        
+  .modal-dialog.new_form_layout
+    .modal-content
+      - sendmail = Contact.new()
+      = form_for(sendmail,:url=>"/send_email", :html=>{:class => "form cmn_new_popup_form",:method=>"post",:id=>"send-mail-popup",:multipart => true}) do |f|
+        =hidden_field_tag "mailer_id"
+        =hidden_field_tag "mailer_type"
+        =hidden_field_tag "email_contact_id"
+        =hidden_field_tag "email_contact_type"
+        
+        %input{:type=>"hidden",:id=>"contact_id_send_mail_popup",:name=> "contact_id_send_mail_popup"}
+        .modal-header.header_icon
+          %span.cwkp-sprite.email_heading_icon
+          %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal",} ×
+          %h4.modal-title{style: "display:inline-block;"} Send Email
+        .modal-body
+          %div
+            .form-group
+              .form_fld
+                %span.cwkp-sprite.lead_name
+                = email_field_tag :to, "",:required => true, disabled: true, style: "cursor:not-allowed;background:#eee" 
+            %label{id:"email_err_to",class: "error"}
+            %a.cc_link{href: "javascript:", id: "cc_link", onclick: "show_cc_bcc('cc')", :class=>"link_col", style: "margin-bottom: 10px;display: inline-block;"} Cc
+            %a.bcc_link{href: "javascript:", id: "bcc_link", onclick: "show_cc_bcc('bcc')", :class=>"link_col"} Bcc
+          .row.displaynone#cc_bcc_div
+            .form-group.col-md-6.padrht#cc_div
+              .form_fld
+                %span.cwkp-sprite.lead_name
+                = email_field_tag :cc, "",:class=> "send_email_field", placeholder: "Cc"
+              %span.link_col{onclick: "hide_cc_bcc('cc')",style: "cursor:pointer;"} Remove Cc
+              %a.bcc_link{href: "javascript:", id: "add_bcc", onclick: "show_cc_bcc('bcc')", :class=>"link_col"} | Add Bcc
+              %label{id:"email_err_cc",class: "error"}
+            .form-group.col-md-6.padlft#bcc_div
+              .form_fld
+                %span.cwkp-sprite.lead_name
+                = email_field_tag :bcc,"",:class=> "send_email_field", placeholder:"Bcc"
+              %span.link_col{onclick: "hide_cc_bcc('bcc')",style: "cursor:pointer;"} Remove Bcc
+              %a.cc_link{href: "javascript:", id: "add_cc", onclick: "show_cc_bcc('cc')", :class=>"link_col", style: "margin-bottom: 10px;display: inline-block;"} 
+                | Add Cc
+              %label{id:"email_err_bcc",class: "error"}
+          .form-group
+            .form_fld
+              %span.cwkp-sprite.lead_email
+              = text_field_tag :subject, "", :required => true ,:html=>{:maxlength=> "100"}, :style=> "resize: none;", :rows=>"4", placeholder: "Subject"
+          .form-group
+            %label
+              .cb10
+              Message
+            .col-md-12.p0
+              = text_area_tag :message, "",:required => true,:style=> "resize:none;"
+            %label{id:"email_err_msg",class: "error"}
+            #upload_attach_file{:style=>"width:37%;"}
+              = file_field_tag :attachment,:onclick =>"show_delete_btn()",:class=>"form-control btn-metis-7 btn-file",:style=>"margin-top:170px;border:none;padding-left:0;height:30px;"
+            .delete_file{style: "display:none;margin-top:5px;"}
+              %a{href: "javascript:void(0)", onclick: "clearFileInputField('upload_attach_file')"}
+                Delete File
+          .modal-footer.form-layout-footer
+            %button.btn.btn-info{type: "submit", disable_with: "Please wait...", id: "send_email_submit_btn", onclick: "return validate_send_email()", style: "padding: 4px 10px 2px;"} 
+              Send
+              %span.cwkp-sprite.rocket_icon
+            %a.btn.btn-default{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+              %span.c_links
+                Cancel
+  }
+              
+#output_send_email
+
+:javascript
+  function show_delete_btn(){
+    $('.delete_file').show();
+  }
+  $(function() {
+    $("#attachment").on('change',function (){
+      var fileName = $(this).val();
+      $('.delete_file').show();
+    });
+  });
+  function clearFileInputField(tagId) {
+  document.getElementById(tagId).innerHTML =
+    document.getElementById(tagId).innerHTML;
+    $(".delete_file").hide();
+  }
+
+  $('#message').wysiwyg({
+    rmUnusedControls: true,
+    controls: {
+      bold: { visible : true },
+      underline: { visible: true },
+      italic: { visible: true },
+      insertOrderedList: { visible: true },
+      insertUnorderedList: { visible: true } 
+    }
+  });
+  
+  $("#SendEmailModal").on('shown.bs.modal', function () {
+    $('.delete_file').hide();
+  });

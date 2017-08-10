@@ -1,0 +1,49 @@
+.dailyupdate-page.task_page
+  .top-task-bar.task-white-bar.fixed-in-app-header
+    .navbar-right
+      = link_to "Manage Daily Update", manage_daily_updates_path
+  .cb 
+  .wrapper
+    .col-md-5
+      %form.update-field
+        .lbl-blk
+          %label Lead
+          = select_tag('deal_id', options_from_collection_for_select(@deals,"id","title"), :prompt => 'Select', :class => "select form-control dailyUpdate_sel")
+          #user_list_name
+    .col-md-7
+      .daily-catchup-point
+        %strong
+          Need daily/periodic updates from your team member(s)? Just schedule it & sit back. You'll get everything you need, at your preferred time.
+        %ul
+          %li Get daily updates without nagging your people.
+          %li Progress from your entire team, delivered to you in a single email.
+          %li Everything tailor made, just what you want... when you want.
+          %li
+            In case you change your mind, unsubscribing is equally easy.
+            = image_tag "new-ui/daily_updates.jpg"
+    .clearfix
+:javascript
+  $( "#deal_id" ).change(function() {
+    var deal_id = $(this).val();
+    $.ajax({ 
+        type: "GET",
+        url: "/get_daily_update_form",
+        dataType: 'json',
+        async: false,
+        data: {deal_id: deal_id},
+        beforeSend: function(){
+          $("#task_loader").show();
+        },
+        success: function(data)
+        {
+        },
+        error: function(data) {
+          $("#task_loader").hide();
+        },
+        complete: function(data) {
+          $("#user_list_name").html(data.responseText);
+          $(".hide_remains").show();
+          $("#hdn_deal_id").val(deal_id);
+        }
+      });
+  });

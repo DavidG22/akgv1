@@ -1,0 +1,26 @@
+.row  
+  - @user.all_assigned_deal.each do |l|
+    .check_title.fl{:style=>"margin-left:15px;"}
+      = check_box_tag "remove_leads", "#{l.id}"
+      = l.title
+.modal-footer
+  = submit_tag "Remove", :class=> "btn btn-primary", :disable_with => "Please wait ...", :id => "remove_lead_btn"
+  %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+
+:javascript
+  $('#remove_lead_btn').click(function () {
+    remove_deal_ids=[];
+    $("input[type='checkbox'][name='remove_leads']:checked").each(function () {
+        remove_deal_ids.push($(this).val());
+    });
+    $('#hdn_unassign_deals').val(remove_deal_ids);
+    update_assign_lead('#{@user.id}');
+  });
+
+  $('input[type="checkbox"][name="remove_leads"]').change(function() {
+    if(this.checked) {
+      $(this).parents('.check_title').css("color","red");
+    }else{
+      $(this).parents('.check_title').css("color","#333");
+    }
+  });

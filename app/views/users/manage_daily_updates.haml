@@ -1,0 +1,75 @@
+.dailyupdate-page.task_page
+  .top-task-bar.task-white-bar
+    .navbar-right
+      = link_to "Daily Update", daily_updates_path
+  .cb
+  .files_content_block
+    .manage_daily_update
+      .daily_update_div
+        %table.table.table-striped.daily_header
+          %tbody
+            %tr
+              %th.fileno_width # 
+              %th.filelead_width Lead Name
+              %th.filename_width Users Involved
+              %th.filetype_width Alert Time
+              %th.fileuploaded_width Timezone 
+              %th.filedate_width Frequency
+              %th.filedate_width Actions
+            - i = 0
+            - @daily_updates.each do |dly_update|
+              %tr{id: "daily_update_"+dly_update.id.to_s}
+                %td
+                  = i += 1
+                %td
+                  = dly_update.deal.title
+                %td
+                  - involved_users = User.where("id IN (?)", dly_update.user_ids.split(",")).map{|u| u.full_name} 
+                  = involved_users.join(", ")
+                %td
+                  = dly_update.alert_time.strftime("%H:%M%p")
+                %td
+                  = dly_update.time_zone
+                %td
+                  = dly_update.frequency
+                %td
+                  %a.edit-exist-usr{:href=>"javascript:void(0)", :onclick => "edit_daily_update('#{dly_update.id}')"}
+                    %span.glyphicon.glyphicon-edit
+                  %a{:href=> delete_daily_update_path(id: dly_update.id), :"data-confirm" => "Are you sure want to delete?", "data-method" => "DELETE"}
+                    %span.glyphicon.glyphicon-trash
+
+
+#editDailyUpdateModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "editDailyUpdateModal", role: "dialog", tabindex: "-1"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        %h4.modal-title Edit Daily Update
+      .modal-body
+        #daily_update_content{style: "margin-left: 12px;"}
+
+
+:javascript
+  function edit_daily_update(id){
+    $.ajax({
+      type: "POST",
+      url: "/edit_daily_update",
+      dataType: 'json',
+      async: false,
+      data: {id: id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#editDailyUpdateModal").modal("show");
+        $("#daily_update_content").html(data.responseText);
+        $("#task_loader").hide();
+      }
+    });
+  }

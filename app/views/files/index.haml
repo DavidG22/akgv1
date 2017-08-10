@@ -1,0 +1,126 @@
+.container.files_container
+  .files_header.fixed-in-app-header
+    / .fl.col-md-6  
+    /   =text_field_tag "file_from_date","",value: "",class: "form-control typeahead",placeholder: "From"
+    /   =text_field_tag "file_to_date","",value: "",class: "form-control typeahead",placeholder: "To"
+    /   %button.btn.btn-primary{class: "filterSelectedFile",type: "button",rel: "tooltip", title: "Filter" } 
+    /     Search
+    .fr
+
+      %div.fl.show_file_filter
+        %span.filter_details_container
+          %span.filter_name
+          %span.close_file_filter
+            x
+      %div.fl{style: "margin-right: 7px;"}
+        %ul{style: "left: -105px;"}
+          %li.dropdown.mega-dropdown.pull-right{style: "margin-top: -2px;"}
+            %a.dropdown-toggle{:href => "javascript:void(0);", onclick: "reset_all_sub_menu()"}
+              %span.cwkp-sprite.filter.dropdown-toggle
+            %ul.dropdown-menu.mega-dropdown-menu
+              %li.arrow_top
+              %li.show_filter_option.dropdown.mega-dropdown
+                %a.dropdown-toggle{:href => "javascript:void(0);", onclick: "getLeads()"}
+                  Filter by Lead
+                %ul.dropdown-menu.mega-dropdown-menu.display_list.display_leads{style: "left: -148px;top: -10px !important;"}
+                  .filter_by_lead
+              %li.divider
+              %li.show_filter_option.dropdown.mega-dropdown
+                %a.dropdown-toggle{:href => "javascript:void(0);", onclick: "getUsers()"}
+                  Filter by User
+                %ul.dropdown-menu.mega-dropdown-menu.display_list.display_users{style: "left: -148px;top: -10px !important;"}
+                  .filter_by_user
+      .cb
+    .cb
+  
+  .files_wrapper
+    = render partial: "show_files"
+
+:javascript
+  $('li.dropdown.mega-dropdown a').on('click', function (event) {
+    $(this).parent().toggleClass('open');
+  });
+  $('body').on('click', function (e) {
+    if (!$('li.dropdown.mega-dropdown').is(e.target) 
+        && $('li.dropdown.mega-dropdown').has(e.target).length === 0 
+        && $('.open').has(e.target).length === 0
+    ) {
+        $('li.dropdown.mega-dropdown').removeClass('open');
+    }
+  });
+  
+  function getLeads(){
+    hide_other_list();
+    $(".display_leads").show();
+    $(".filter_by_lead").html("<div style='margin-top:100px; text-align:center'><img src='/assets/ajax-loader2.gif'/ ></div>");
+    $.ajax({
+    url: '/get_all_leads',
+      type: 'POST',
+      success: function(res) {
+        $(".filter_by_lead").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    });
+  }
+
+  function getUsers(){
+    hide_other_list();
+    $(".display_users").show();
+    $(".filter_by_user").html("<div style='margin-top:100px; text-align:center'><img src='/assets/ajax-loader2.gif'/ ></div>");
+    $.ajax({
+    url: '/get_all_users',
+      type: 'POST',
+      success: function(res) {
+        $(".filter_by_user").html(res);
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+      }
+    });
+  }
+
+  function hide_other_list(){
+    $(".display_list").hide();
+  }
+
+  $(".close_file_filter").on('click', function(){
+    $(".show_file_filter").hide();
+    $("#task_loader").show();
+    $.ajax({
+    url: '/load_all_files',
+      type: 'POST',
+      success: function(res) {
+        $(".files_wrapper").html(res);
+        $("#task_loader").hide();
+      },
+      error: function(res) {
+        $("#task_loader").hide();
+        alert("Error Found.!!!");
+      }
+    });
+  });
+  
+  $(".filterSelectedFile").on('click', function(){
+    var from_date = $("#file_from_date").val();
+    var to_date = $("#file_to_date").val();
+    $.ajax({
+    url: '/filter_file_on_date_range',
+      type: 'POST',
+      data: {from_date: from_date,to_date: to_date },
+      success: function(res) {
+        $(".files_wrapper").html(res);
+        $("#task_loader").hide();
+      },
+      error: function(res) {
+        $("#task_loader").hide();
+        alert("Error Found.!!!");
+      }
+    });
+  });
+
+  function reset_all_sub_menu(){
+    $(".display_list").hide(); 
+    //$(".filter_by_lead").hide(); 
+  }

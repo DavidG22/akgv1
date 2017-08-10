@@ -1,0 +1,29 @@
+/ Listing contact in contact details page.
+%ul.contact-left
+  - @contacts.each do |con|
+    - @name = con.class.name == "IndividualContact" ? con.first_name : con.name
+    %li
+      - if con.image.present?
+        .fl.smallContactImage{:style => "margin: 0 -42px;"}
+          = image_tag con.image.image.url(:thumb)
+      - else
+        .small-contactIcon
+          - unless @name.nil?
+            - contact_letter = @name[0]
+          - else
+            - contact_letter = con.email[0]
+          %span.contact-small-profile-icon{:style=>"background:#{Contact.get_color_code(contact_letter.downcase[0])}"}
+            = contact_letter.upcase
+      %h5
+        - if con.class.name == "IndividualContact"
+          %a{href: "/contact/#{con.id}"} 
+            - unless @name.nil?
+              = @name.titlecase
+            - else
+              = con.titlecase
+        - else
+          %a{href: "/contact/#{con.id}?type=company"} 
+            - unless @name.nil?
+              = @name.titlecase
+            - else
+              = con.titlecase

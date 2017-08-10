@@ -1,0 +1,31 @@
+%table.table
+  %tr
+    %th #
+    %th Name
+    %th Type
+    %th Assigned to
+    %th Due date
+    %th Actions
+  - if @tasks.present?
+    - i = 0
+    - @tasks.each do |task|
+      %tr{:id => "task_"+task.id.to_s}
+        %td.num
+          = i+=1
+        %td
+          = task.title
+        %td
+          = task.task_type.present? ? task.task_type.name : ""
+        %td
+          = task.assigned_user_name
+        %td
+          = task.due_date.strftime("%b %d, %Y")
+        %td.actions
+          %a{:href => "javascript:void(0)", :onclick => "$('#taskModal').modal('show');edit_popup('#{task.id}');"}
+            %i.fa.fa-pencil-square-o{"aria-hidden" => "true"}
+          %a{:href => "javascript:void(0)", :onclick => "delete_task(#{task.id})"}
+            %i.fa.fa-trash-o{"aria-hidden" => "true"}
+  - else
+    %tr
+      %td
+        No tasks found.

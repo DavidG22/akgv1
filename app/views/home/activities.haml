@@ -1,0 +1,68 @@
+.container.activities_page
+  .white-sticky-header.fixed-in-app-header{style: "padding-top: 22px;"}
+    %span{style: "margin-top:5px"}  
+      %span.navigation_sec
+        %a{href: "/leads"}
+          Leads
+        ="/"
+      %span.curr_page_name
+        Activities
+  .row
+    .col-md-12.activity_page
+      .navbar-right
+        //.btn-group
+        //  %button.btn.btn-default{type: "button"}
+        //    %span.glyphicon.glyphicon-list
+        //  %button.btn.btn-default{type: "button"}
+        //    %span.glyphicon.glyphicon-calendar
+        //.btn-group    
+        //  %button.btn.btn-default{type: "button"}
+        //    %span.glyphicon.glyphicon-filter
+        //    Filter
+        //  %button.btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown", type: "button"}
+        //    %span.caret
+        //    %span.sr-only Toggle Dropdown
+        //  %ul.dropdown-menu{role: "menu"}
+        //    %li
+        //      %a{href: "#"} Action
+        //    %li
+        //      %a{href: "#"} Another action
+        //    %li
+        //      %a{href: "#"} Something else here
+        //    %li.divider
+        //    %li
+        //      %a{href: "#"} Separated link
+        //%button.btn.btn-primary{type: "button"}
+        //  %span.glyphicon.glyphicon-plus-sign 
+        //  Add a New Activity
+      .tablisting.task_tab.con-box1.activity-stream-section{style: "padding:0;margin-bottom: 15px;"}
+        .activity-container
+          %span.cwkp-sprite.activity-stream
+          %span.head_font Activity Stream
+              
+          //%li#overdueTask
+          //  %a{"data-toggle" => "tab", href: "#overdue", onclick: "widget_tasks('overdue')", style: "cursor:pointer;"}
+          //    Started
+              
+          //%li#upcomingTask
+          //  %a{"data-toggle" => "tab", href: "#upcoming", onclick: "widget_tasks('upcoming')", style: "cursor:pointer;"}
+          //    Completed
+              
+          //%li#upcomingTask
+          //  %a{"data-toggle" => "tab", href: "#upcoming", onclick: "widget_tasks('upcoming')", style: "cursor:pointer;"}
+          //    Delegated
+              
+          
+        .cb
+        .table-responsive
+          -@source="activities"
+          =render :partial=>"activity_all",:objects=>{source: @source}
+
+:javascript
+  $(window).scroll(function(){
+        if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+           //$('#load_more_span').hide();
+           $('#loading_span').show();
+           Ajax3.call();
+        }
+  });

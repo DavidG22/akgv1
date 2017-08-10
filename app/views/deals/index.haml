@@ -1,0 +1,1649 @@
+:css
+  .table > tbody > tr > td {
+    border-top: none;
+  }
+- if request.fullpath.include? "kanban"  
+  .container{sttyle: "padding-left:0;padding-right:0"}
+    #view_content.lead-page.custom-kls
+      - if !@current_organization.deals.by_is_active.present?
+        = render :partial => "shared/show_empty_banner"
+      - else    
+        = render :partial => "show_kanban_view"
+- else
+  .container
+    #view_content.lead-page.custom-kls
+      - if !@current_organization.deals.by_is_active.present?
+        = render :partial => "shared/show_empty_banner"
+      - else    
+        = render :partial => "show_list_view"
+    .lead-details
+:javascript
+  q = $('#deal_quarter').val("#{params[:q]}");
+  y = $('#deal_year').val("#{params[:y]}");
+  document.cookie="deal_quarter="+q.val();
+  document.cookie="deal_year="+y.val();
+  $('html').click(function() {
+   $('.main_menu').hide(); 
+  });
+
+  $('#hide_main').click(function(event){
+     event.stopPropagation();
+  });
+  full_url = document.URL;
+  if(full_url.indexOf("leads/kanban") >= 0){
+    window.history.pushState(null, "Title", "/leads/kanban");
+  }
+  else
+  if("#{params[:type].present?}" == "false")
+  {
+    get_deals('all');
+  }
+  //$(document).on('click', function( e ) {
+   //$('.main_menu').hide();
+    //reser_all_submenu();
+  //});
+  function reset_deal_cookie()
+  {
+   $.each(["cre_by","cre_by_val","cre_by_txt","daterange","dt_range","dt_range_txt","asg_by","asg_by_val","asg_by_txt","loc","loc_val","loc_txt","priority","priority_val","priority_txt","next","next_val","next_txt","last_touch","last_tch","last_touch_txt","dtrange_from","dt_range_from","dt_range_frm_txt","dtrange_to","dt_range_to","dt_range_to_txt","page_tab","tag","stage", "user_label","opportunity","label_type","label_name"], function( index, value ) {
+    $.removeCookie(value);   
+   });
+    $(".tag_dd").hide();
+    $(".reset_tag").hide();
+    $('#filter_created_by').prop('selectedIndex',0);
+    $('#filter_assigned_to').prop('selectedIndex',0);
+    $('#filter_location').prop('selectedIndex',0);
+    $('#filter_priority').prop('selectedIndex',0);
+    $('#filter_date').prop('selectedIndex',0);
+    $('#filter_last_touch').prop('selectedIndex',0);
+    $('#filter_stage').prop('selectedIndex',0);
+    $('#deal_from').val('');
+    $('#deal_to').val('');
+  }
+  function select_filter_from_cookies(){
+    if(("#{cookies[:cre_by]}" == "true" ) || ("#{cookies[:asg_by]}" == "true" ) || ("#{cookies[:loc]}" == "true" ) || ("#{cookies[:priority]}" == "true" ) || ("#{cookies[:next]}" == "true" ) || ("#{cookies[:daterange]}" == "true" ) || ("#{cookies[:last_tch]}" == "true" )|| ("#{cookies[:opportunity]}" == "true" ) || ("#{cookies[:dtrange_from]}" == "true" && "#{cookies[:dtrange_to]}" == "true") || ("#{cookies[:tag]}" != '') || ("#{cookies[:stage]}" == 'true') || ("#{cookies[:user_label]}" == 'true')){
+      if("#{cookies[:cre_by]}" == "true" ){
+        var cre_split = "#{cookies[:cre_by_val]}".slice(0,-1).split('|');
+        for(var i=0;i<cre_split.length;i++)
+        {
+          $("#cre_by_"+cre_split[i]).prop("checked", true)
+        }        
+
+        //$('#filter_created_by').val("#{cookies[:cre_by_val]}");
+        //$("#cre_by_"+"#{cookies[:cre_by_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".created_by_tag").show();
+        $("#created_by_tag_txt").html("#{cookies[:cre_by_txt]}".split('|').join(','));
+      }
+      if("#{cookies[:asg_by]}" == "true" ){
+        var asg_split = "#{cookies[:asg_by_val]}".slice(0,-1).split('|');
+        for(var i=0;i<asg_split.length;i++)
+        {
+          $("#assg_by_"+asg_split[i]).prop("checked", true)
+        }
+      
+        //$('#filter_assigned_to').val("#{cookies[:asg_by_val]}");
+        //$("#assg_by_"+"#{cookies[:asg_by_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".assigned_to_tag").show();
+        $("#assigned_to_tag_txt").html("#{cookies[:asg_by_txt]}".split('|').join(','));
+      }
+
+      if("#{cookies[:loc]}" == "true" ){
+        var loc_split = "#{cookies[:loc_val]}".slice(0,-1).split('|');
+        for(var i=0;i<loc_split.length;i++)
+        {
+          $("#country_"+loc_split[i]).prop("checked", true)
+        }      
+        //$('#filter_location').val("#{cookies[:loc_val]}");
+        //$("#country_"+"#{cookies[:loc_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".location_tag").show();
+        $("#location_tag_txt").html("#{cookies[:loc_txt]}".split('|').join(','))
+      }
+      if("#{cookies[:priority]}" == "true" ){
+        var prio_split = "#{cookies[:priority_val]}".slice(0,-1).split('|');
+        for(var i=0;i<prio_split.length;i++)
+        {
+          $("#priority_"+prio_split[i]).prop("checked", true)
+        }      
+        //$('#filter_priority').val("#{cookies[:priority_val]}");
+        //$("#priority_"+"#{cookies[:priority_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".priority_tag").show();
+        $("#priority_tag_txt").html("#{cookies[:priority_txt]}".split('|').join(','));
+      }
+      if("#{cookies[:next]}" == "true" ){
+        var next_split = "#{cookies[:next_val]}".slice(0,-1).split('|');
+        for(var i=0;i<next_split.length;i++)
+        {
+          $("#next_"+next_split[i]).prop("checked", true)
+        }        
+        //$('#filter_priority').val("#{cookies[:priority_val]}");
+        //$("#next_"+"#{cookies[:next_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".next_tag").show();
+        $("#next_tag_txt").html("#{cookies[:next_txt]}".split('|').join(','));
+      }
+      if("#{cookies[:daterange]}" == "true" ){
+        //$('#filter_date').val("#{cookies[:dt_range]}");
+        var daterange_id = "#{cookies[:dt_range]}".toLowerCase().split(' ').join('_');
+        $("#"+daterange_id).prop("checked", true)
+        $(".tag_filter").show();
+        $(".date_tag").show();
+        $("#date_tag_txt").html("#{cookies[:dt_range_txt]}")
+      }
+      if("#{cookies[:last_tch]}" == "true" ){
+        //$('#filter_last_touch').val("#{cookies[:last_touch]}");
+        var lastouch_id = "#{cookies[:last_touch]}".toLowerCase().split(' ').join('_');
+        $("#"+lastouch_id).prop("checked", true)
+        $(".tag_filter").show();
+        $(".last_touch_tag").show();
+        $("#last_touch_tag_txt").html("#{cookies[:last_touch_txt]}");
+      }
+      if("#{cookies[:opportunity]}" == "true" ){
+        $("#opp").val(1);
+        $(".tag_filter").show();
+        $(".opportunity_tag").show();
+        $("#opportunity_tag_txt").html("Opportunities");
+      }
+      if("#{cookies[:dtrange_from]}" == "true" ){
+        //$('#filter_assigned_to').val("#{cookies[:asg_by_val]}");
+        $(".tag_filter").show();
+        $(".date_range_tag").show();
+        $("#deal_from").val("#{cookies[:dt_range_from]}");
+        $("#deal_to").val("#{cookies[:dt_range_to]}");
+        $("#from_tag_txt").html("#{cookies[:dt_range_frm_txt]} to #{cookies[:dt_range_to_txt]}");
+      }
+      if("#{cookies[:stage]}" == "true" ){
+        var stage_split = "#{cookies[:stage_val]}".slice(0,-1).split('|');
+        for(var i=0;i<stage_split.length;i++)
+        {
+          $("#stage_"+ stage_split[i]).prop("checked", true)
+        }      
+        //$('#filter_stage').val("#{cookies[:stage_val]}");
+        //$("#stage_"+"#{cookies[:stage_val]}").prop("checked", true)
+        $(".tag_filter").show();
+        $(".stage_tag").show();
+        $("#stage_tag_txt").html("#{cookies[:stage_txt]}".split('|').join(','));
+      }
+      if("#{cookies[:user_label]}" == "true" ){
+        var user_label_split = "#{cookies[:user_label_val]}".slice(0,-1).split('|');
+        for(var i=0;i<user_label_split.length;i++)
+        {
+          $("#user_label_"+ user_label_split[i]).prop("checked", true)
+        }
+        $(".tag_filter").show();
+        $(".user_label_tag").show();
+        $("#user_label_tag_txt").html("#{cookies[:user_label_txt]}".split('|').join(','));
+      }
+      if("#{cookies[:tag]}" != '')
+      {
+        $(".tag_filter").show();
+        $(".deal_tag").show();
+        $("#deal_tag_txt").html("#{cookies[:tag]}");
+      }
+      $("#filter_get_val").val(1)
+      //$(".filter_box").show();
+      $(".tag_filter").show();
+      $("#incoming_div_val").val("0");
+      $("#working_div_val").val("0");
+      $("#qualify_div_val").val("0");
+      $("#won_div_val").val("0");
+      $("#lost_div_val").val("0");
+      $("#not_qualify_div_val").val("0");
+      $("#junk_div_val").val("0");
+      $("#un_assigned_div_val").val("0");
+      $("#no_contact_div_val").val("0");
+      $("#follow_up_required_div_val").val("0");
+      $("#follow_up_div_val").val("0");
+      $("#quoted_div_val").val("0");
+      $("#meeting_scheduled_div_val").val("0");
+      $("#forecasted_div_val").val("0");
+      $("#waiting_for_project_requirement_div_val").val("0");
+      $("#proposal_div_val").val("0");
+      $("#estimate_div_val").val("0");
+    }
+  }
+  function remove_datatable_cookie(){
+    if('#{cookies[:SpryMedia_DataTables_dataTableWon_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableWon_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTablePipeline_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTablePipeline_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableIncoming_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableIncoming_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableJunk_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableJunk_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableNotQualify_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableNotQualify_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableLost_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableLost_deals");
+    }
+    //added new deal stages
+    if('#{cookies[:SpryMedia_DataTables_dataTableNoContact_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableNoContact_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableFollowUpRequired__deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableFollowUpRequired_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableFollowUp_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableFollowUp_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableQuoted_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableQuoted_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableMeetingScheduled_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableMeetingScheduled_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableForecasted_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableForecasted_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableWaitingForProjectRequirement_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableWaitingForProjectRequirement_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableProposal_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableProposal_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTableEstimate_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTableEstimate_deals");
+    }
+    if('#{cookies[:SpryMedia_DataTables_dataTable_un_assigned_deals]}' != ""){
+      $.removeCookie("SpryMedia_DataTables_dataTable_un_assigned_deals");
+    }
+  }
+  $(function() {
+    $('#deal_from').datepicker({dateFormat: 'dd-mm-yy',autoclose: true})
+    $('#deal_to').datepicker({dateFormat: 'dd-mm-yy',autoclose: true})
+
+    select_filter_from_cookies()
+    $('#SendEmailModal').on('shown.bs.modal', function () {
+      //$('#SendEmailModal').animate({ scrollTop: 1 }, 'slow');
+      //$('#SendEmailModal').css({"margin-top":"-33px"})
+      //$('#message').wysihtml5();  
+    });    
+    //$('#message').wysihtml5();
+    $("div#deal_label_menu ul > li > input:checkbox").click(function(e) {
+        e.stopPropagation();
+    });
+    $('#editable_label').editable({
+      url: '/settings/save_label' ,
+      pk: 1,
+      placement: 'bottom',
+      title: 'Enter Label',
+      type: 'text',
+      data: {custom: 'text'}, 
+      text: "+ Label",
+      validate: function(value) {
+        if($.trim(value) == '')
+          return 'Please enter Label';
+      },
+      success: function(data) {
+        
+        var newsource = data.split('-');
+        var o = new Option(newsource[0],newsource[0]);
+        /// jquerify the DOM object 'o' so we can use the html method
+        
+        $(o).html(newsource[1]);
+        
+        $(o).prop('selected', true)
+        $("#user_labels").append(o);
+        
+      },
+      error: function(data) {
+        /* actions on validation error (or ajax error) */
+        var msg = '';
+        if(data.errors) { //validation error
+          $.each(data.errors, function(k, v) { msg += k+": "+v+"<br>"; });
+        } 
+        else if(data.responseText) { //ajax error
+        msg = data.responseText;
+      }
+    }
+    });
+    $('#editable_label').on('hidden', function(e, editable) {
+      $("#editable_label").text("+ Add Label");
+      editable.text = "";
+    });
+    
+    if(#{params[:type].present?} == true){
+      $("##{params[:type]}Deals").click()
+    }
+  });
+
+  $('#dataTableall a.lead_amount').editable({
+      type: 'text',
+      name: 'Amount',
+      url: '/post',
+      title: 'Enter username'
+  });
+
+  function addLabelToDeal(obj)
+  {
+    var deals = $("#mass_deal_ids").val();
+    var labels= [];
+    $(obj).parent('ul').find('input:checked').each(function() {
+      labels.push($(this).val());
+    });
+    //$(".tab-pane.active").find('#deallist').find('input:checked').each(function() {
+      //deals.push($(this).val());
+    //});
+    var posturl= "leads/apply_label_to_lead";
+    var qstring= "?deals="+deals+"&labels="+labels;
+    $.ajax( {
+      type: "POST",
+      url: posturl + qstring,
+      success: function(result) {
+        window.location.reload();
+        //alert(result);
+      }
+    });
+  }
+  
+  function applylabel_deal(obj)
+  {
+   var labels_deal= [];
+   var s_deal = $("#deal_id_for_label").val();
+   $(obj).parent('span').find('input:checked').each(function() {
+      labels_deal.push($(this).val());
+    });
+    var posturl= "leads/apply_label_to_single_lead";
+    var qstring= "?deal="+s_deal+"&labels="+labels_deal;
+    $.ajax( {
+      type: "POST",
+      url: posturl + qstring,
+      success: function(result) {
+        window.location.reload();
+        //alert(result);
+      }
+    });
+  }
+  function task_deal(deal_id)
+  {
+  $("#task_taskable_type").val('Deal');
+  $("#task_taskable_id").val(deal_id);
+  }
+  function note_deal(deal_id)
+  {
+  $("#task_taskable_type").val('Deal');
+  $("#task_taskable_id").val(deal_id);
+  }
+  
+  
+  function showlabelicons(data,type)
+  {
+    var str= "";
+    if (typeof type === "undefined" || type === null) { 
+      type = "incoming"; 
+    }
+    for(var i=0;i<data.length;i++)
+    {
+      str=str+ '<a href=\'#\' style="text-decoration:none" onclick="filterbylabel(\''+ data[i][2]+'\',\''+ type +'\',\''+ data[i][1] +'\')"><span style=\'font-weight:bold;border:1px solid ' + data[i][0]+';color:' + data[i][0]+ ';font-size: 11px;margin: 2px;\' class=\'btn-xs\'>' + data[i][1] + '</span></a>';
+    }
+    return str;
+  }
+  
+  function display_opportunity(data,type)
+  {
+    var str= "";
+    if (typeof type === "undefined" || type === null) { 
+      type = "all"; 
+    }
+    if(data == "true")
+    {
+      //str= '<a rel=\'tooltip\' title=\'You have already done business with this customer. Chances to close this deal is high.\' href=\'#\' style="text-decoration:none;" onclick="filterbyopportunity(\''+ type +'\')"><span  class= \'labelTaskType\' style=\'font-weight:bold;border:1px solid;font-size: 11px;margin: 2px;color:white;background-color: green;opacity: 0.7;display:block\' class=\'btn-xs\'>' + 'Opportunity' + '</span></a>';
+      //str += '<span title=\'You have already done business with this customer. Chances to close this deal is high.\' style=\'cursor:pointer\'> ' + '<img src=\'/assets/question.jpg\'  style=\'height: 12px;margin-left: -3px;\'/>' + '</span>'
+      str= '<div onclick="filterbyopportunity(\''+ type +'\')"  title=\'You have already done business with this customer. Chances to close this deal is high.\'  class= \'labelTaskType\' style=\'border:1px solid;font-size: 12px;margin: 2px;color:white;background-color: green;opacity: 0.7;display:block;cursor:pointer\' class=\'btn-xs\'>' + 'Opportunity' + '</div>';
+      
+    }
+    return str;
+  }
+  
+  function filterbylabel(labelid,dtype,labelname)
+  {
+    document.cookie="label_type="+labelid;
+    document.cookie="label_name="+labelname;
+    $("#"+dtype+"_div_val").val(0);
+    get_deals(dtype,'label',labelid);
+  }
+  function filterbypriority(priorityid,dtype)
+  {
+    get_deals(dtype,'priority',priorityid);
+  }
+  
+  function filterbyopportunity(dtype)
+  {
+    document.cookie="opportunity=true";
+    get_deals(dtype,'opportunity','opportunity');
+  }
+  
+  function get_deals(dtype,filter,filtervalue)
+  {
+    document.cookie="page_tab="+dtype;
+    window.history.pushState(null, "Title", "/leads?type="+dtype+"");
+    //var divid="incoming_deals";
+    //var posturl="get_incoming_leads";
+    var divid="all_deals";
+    var posturl="get_other_leads";
+    var my_deals="";
+    var my_created_deals="";
+    if (typeof filter === "undefined" || filter === null) { 
+      filter = "label"; 
+    }
+    if (typeof filtervalue === "undefined" || filtervalue === null) { 
+      filtervalue = 0; 
+    }
+      if(dtype=="incoming")
+      { posturl="get_incoming_leads";
+        divid="incoming_deals";
+        if($("#individual_filter_present").val() == true || $("#individual_filter_present").val() == "true"){
+          my_deals="#{params[:assigned_to]}"
+          my_created_deals="#{params[:created_by]}"
+        }
+        $("#filterNow").show();
+
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }
+      }
+      else if(dtype=="working")
+      { posturl="get_working_on_leads";
+        divid='working_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+        //reset_all_deal_filter();
+        $("#filter_options").hide();
+        $(".tag_filter").hide();
+      } 
+      else if(dtype=="won")
+      { posturl="get_won_leads";
+        divid='won_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          //$("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      } 
+      else if(dtype=="lost")
+      { posturl="get_lost_leads";
+        divid='lost_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      } 
+      else if(dtype=="junk")
+      { posturl="get_junk_leads";
+        divid='junk_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      }
+      else if(dtype=="un_assigned")
+      { posturl="get_un_assigned_deals";
+        divid='un_assigned_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      }
+      else if(dtype=="qualify")
+      { posturl="get_qualify_deals";
+        divid='qualify_deals';
+        
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      } 
+      else if(dtype=="not_qualify")
+      { posturl="get_not_qualify_deals";
+        divid='notqualify_deals';
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+      }
+      else if(dtype == "inactive_deals")
+      {
+        posturl="get_inactive_leads";
+        divid='inactive_deals_content';
+        $("#filterNow").hide();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        $("#filter_options").hide();
+        $(".tag_filter").hide();
+        
+        $("#filterNow").show();
+      }
+      else
+      {
+      
+      posturl="get_other_leads?dtype="+dtype;
+        divid= dtype + '_deals';
+        
+        $("#filterNow").show();
+        //reset_filter_tabs();
+
+        //reset_all_deal_filter();
+        if($("#filter_get_val").val() == "1")
+        {
+          //$("#filter_options").show();
+          $(".tag_filter").show();
+        }else{
+          $("#filter_options").hide();
+          $(".tag_filter").hide();
+        }
+        
+      }
+    if(dtype == 'all')
+    {
+      // alert(1);
+      $('#leads_export_btn').show();
+      $("#li_stage").show();
+      $("#li_user_label").show();
+    }
+    else
+    {
+      //alert(2);
+      $('#leads_export_btn').hide();
+      $("#li_stage").hide();
+      $("#li_user_label").hide();
+      $(".stage_tag").hide();
+      $('.stage_tag').hide();
+      $('.stage_c').removeAttr('checked');
+      $(".user_label_tag").hide();
+      $('.user_label_c').removeAttr('checked');
+    
+         //reset_deal_filter('stage','stage_c');
+    }
+    if(!$('.tag_dd').is(':visible')){
+      $('.tag_filter').hide();
+    }
+    if($("#filter_get_val").val() == "1"){
+      $('#task_loader').show();
+      setTimeout('multi_filter_deals()', 1000);
+    }
+    else if($("#"+divid).html().trim() == "" || filtervalue != 0 || ($("#"+divid).html().trim() != "" && filtervalue == 0) ) 
+    { 
+     //alert($("#"+dtype+"_div_val").val())
+     //if($("#"+dtype+"_div_val").val() != "1"){
+     //   alert('calling ajax')
+      var is_opportunity = $.cookie("opportunity");
+      var is_label = $.cookie("label_type");
+      $.ajax( {
+        type: "POST",
+        url: posturl ,
+        data: {filtertype: filter,filtervalue: filtervalue, assigned_to: my_deals, created_by: my_created_deals},
+        success: function(result) {
+          
+          $("#"+divid).html(result);
+          if(is_opportunity != null){
+            $(".tag_filter").show();
+            $(".opportunity_tag").show();
+            $("#opportunity_tag_txt").html("Opportunities");
+            $(".reset_tag").show();
+          }
+          //alert(typeof is_opportunity);
+          if(is_label != null){
+            $(".tag_filter").show();
+            $(".label_tag").show();
+            $("#label_tag_txt").html($.cookie('label_name'));
+            $(".reset_tag").show();
+          }
+          //$("#"+divid).addClass("active");
+          //if(filter == "opportunity"){
+          //  $(".tag_filter").show();
+          //  //$(".reset_tag com_cls").hide()
+          //  //alert($(".reset_tag com_cls").is(":visible"))
+          //  //$("#show_filter_dealmsg").html('').html("Filtered deals with opportunity <a class=\"btn btn-xs btn-warning\" href=\"javascript:void(0);\" onclick=\"reset_all_deal_filter();reset_filter_val();\">RESET</a>" );            
+          //  $("#show_filter_dealmsg").html("Filtered deals with opportunity" );
+          //  $(".reset_tag com_cls")
+          //}
+          
+        }
+      });
+      //}
+    }
+  }
+
+  function multi_filter_deals()
+  {
+    remove_datatable_cookie();
+    $('#individual_filter_msg').hide();
+    $('#individual_filter_msg').html('');
+    $('#individual_filter_present').val(false);
+    var tag_val = "#{cookies[:tag]}"
+    var opportunity_val = $.cookie('opportunity');
+    var cre_by_val = "";
+    var asg_by_val = "";
+    var loc_val = "";
+    var priority_val = "";
+    var next_val = "";
+    var stage_val = "";
+    var user_label_val = "";
+    $("input:checkbox[name='created_by']:checked").each(function(i) {
+      var values = $(this).val() + "|";
+      cre_by_val += values;
+    });    
+    $("input:checkbox[name='assg_by']:checked").each(function(i) {
+      var assg_vals = $(this).val() + "|";
+      asg_by_val += assg_vals;
+    });
+    $("input:checkbox[name='coun']:checked").each(function(i) {
+      var loc_vals = $(this).val() + "|";
+      loc_val += loc_vals;
+    });
+    $("input:checkbox[name='prio']:checked").each(function(i) {
+      var pri_val = $(this).val() + "|";
+      priority_val += pri_val;
+    });   
+    $("input:checkbox[name='next']:checked").each(function(i) {
+      var nxt_val = $(this).val() + "|";
+      next_val += nxt_val;
+    });
+    $("input:checkbox[name='stage']:checked").each(function(i) {
+      var stg_val = $(this).val() + "|";
+      stage_val += stg_val;
+    });
+    $("input:checkbox[name='userLabel']:checked").each(function(i) {
+      var lbl_val = $(this).val() + "|";
+      user_label_val += lbl_val;
+    });  
+    var dt_range = $("input:radio[name='anytime']:checked").val();
+    var last_touch = $("input:radio[name='last_touch']:checked").val();
+    var dt_range_from = $("#deal_from").val();
+    var dt_range_to = $("#deal_to").val();
+    if(dt_range == "Custom Date")
+      $("#custom_date").show();
+    else
+      $("#custom_date").hide();
+      
+    if($("li#incoming_tab" ).hasClass("active")){
+      var dtype="incoming";}
+    else if($("li#qualify_tab" ).hasClass("active"))
+      var dtype="qualify";
+    else if($("li#won_tab" ).hasClass("active"))
+      var dtype="won";
+    else if($("li#lost_tab" ).hasClass("active"))
+      var dtype="lost";
+    else if($("li#not_qualified_tab" ).hasClass("active"))
+      var dtype="not_qualify";
+    else if($("li#junk_tab" ).hasClass("active"))
+      var dtype="junk";
+    else if($("li#un_assigned_tab" ).hasClass("active"))
+      var dtype="un_assigned";      
+    else if($("li#no_contact_tab" ).hasClass("active"))
+      var dtype="no_contact";      
+    else if($("li#follow_up_required_tab" ).hasClass("active"))
+      var dtype="follow_up_required";      
+    else if($("li#follow_up_tab" ).hasClass("active"))
+      var dtype="follow_up";      
+    else if($("li#quoted_tab" ).hasClass("active"))
+      var dtype="quoted";      
+    else if($("li#meeting_scheduled_tab" ).hasClass("active"))
+      var dtype="meeting_scheduled";      
+    else if($("li#forecasted_tab" ).hasClass("active"))
+      var dtype="forecasted";      
+    else if($("li#waiting_for_project_requirement_tab" ).hasClass("active"))
+      var dtype="waiting_for_project_requirement";      
+    else if($("li#proposal_tab" ).hasClass("active"))
+      var dtype="proposal";      
+    else if($("li#estimate_tab" ).hasClass("active"))
+      var dtype="estimate";    
+    else if($("li#all_tab" ).hasClass("active"))
+      var dtype="all";            
+    if("#{params[:type] == 'inactive_deals'}"  == "true"){
+      var dtype="inactive_deals";
+      var divid = "inactive_deals_content";
+      var posturl="get_inactive_leads";
+
+    }else if(dtype == "qualify"){
+      var dtype="qualify"
+      var divid="qualify_deals";
+      var posturl="get_qualify_deals";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+
+    }else if(dtype == "incoming"){
+      var dtype="incoming"
+      var divid="incoming_deals";
+      var posturl="get_incoming_leads";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+      //window.history.pushState(null, "Title", "/deals?type="+dtype+"");
+
+    }else if(dtype == "won"){
+      var dtype="won"
+      var divid="won_deals";
+      var posturl="get_won_leads";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+      //window.history.pushState(null, "Title", "/deals?type="+dtype+"");
+
+    }else if(dtype == "lost"){
+      var dtype="lost"
+      var divid="lost_deals";
+      var posturl="get_lost_leads";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+      //window.history.pushState(null, "Title", "/deals?type="+dtype+"");
+
+    }else if(dtype == "junk"){
+      var dtype="junk"
+      var divid="junk_deals";
+      var posturl="get_junk_leads";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+      //window.history.pushState(null, "Title", "/deals?type="+dtype+"");
+
+    }else if(dtype == "un_assigned"){
+      var dtype="un_assigned"
+      var divid="un_assigned_deals";
+      var posturl="get_un_assigned_deals";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+
+    }
+    else if(dtype == "not_qualify"){
+      var dtype="not_qualify"
+      var divid="notqualify_deals";
+      var posturl="get_not_qualify_deals";
+      $("#filter_get_val").val(1);
+      //history.replaceState({}, '', '/deals');
+      //window.history.pushState(null, "Title", "/deals?type="+dtype+"");
+    }
+    else
+    {
+      if (typeof dtype === "undefined" || dtype === null) {
+        dtype = "all";
+      }
+      var divid=dtype +"_deals";
+      var posturl="get_other_leads";
+      $("#filter_get_val").val(1);
+
+    }
+
+    var my_deals="";
+    var my_created_deals="";
+    var cre_by = false;
+    var asg_by = false;
+    var loc = false;
+    var priority = false;
+    var next = false;
+    var daterange = false;
+    var last_tch = false;
+    var dtrange_from = false;
+    var dtrange_to = false;
+    var stage = false;
+    var user_label = false;
+
+    if(cre_by_val != "" && typeof cre_by_val != 'undefined'){
+
+
+      cre_by = true;
+      //cre_by_txt=$('#cre_by_'+cre_by_val).attr("c_name");
+      var cre_by_txt = "";
+      $("input:checkbox[name='created_by']:checked").each(function(i) {
+        cre_by_txt += $('#cre_by_'+$(this).val()).attr("c_name") + '|';
+      });
+      cre_by_txt = cre_by_txt.slice(0,-1);
+      document.cookie="cre_by=true"
+      document.cookie="cre_by_val="+cre_by_val;
+      document.cookie="cre_by_txt="+cre_by_txt;
+      $(".tag_filter").show();
+      $(".created_by_tag").show();
+      $("#created_by_tag_txt").html(cre_by_txt.split('|').join(','));
+    }
+    var is_opportunity = $.cookie("opportunity");
+
+    if(is_opportunity != null){
+      $(".tag_filter").show();
+      $(".opportunity_tag").show();
+      $("#opportunity_tag_txt").html("Opportunities");
+    }
+    //alert(typeof is_opportunity);
+    var is_label = $.cookie("label_type");
+    if(is_label != null){
+      $(".tag_filter").show();
+      $(".label_tag").show();
+      $("#label_tag_txt").html($.cookie('label_name'));
+    }
+    if(dt_range != "" && typeof dt_range != 'undefined'){
+     if(dt_range != "Custom Date"){
+      $("#deal_from").val('');
+      $("#deal_to").val('');
+      $(".date_range_tag").hide();
+      $.removeCookie("dtrange_from");
+      $.removeCookie("dt_range_from");
+      $.removeCookie("dt_range_frm_txt");
+      $.removeCookie("dtrange_to");
+      $.removeCookie("dt_range_to");
+      $.removeCookie("dt_range_to_txt");
+      daterange = true;
+      date_txt=dt_range
+
+      document.cookie="daterange=true";
+      document.cookie="dt_range="+dt_range;
+      document.cookie="dt_range_txt="+date_txt;
+      $(".tag_filter").show();
+      $(".date_tag").show();
+      $("#date_tag_txt").html(date_txt)
+    }
+    else
+    {
+     if(dt_range_from != "" && dt_range_to != ""){
+     daterange = false;
+     $(".date_tag").hide();
+     $.removeCookie("daterange");
+     $.removeCookie("dt_range");
+     $.removeCookie("dt_range_txt");
+     dtrange_from = true;
+     dtrange_to = true;
+     from_date=$("#deal_from").val();
+     to_date=$("#deal_to").val();
+
+     document.cookie="dtrange_from=true";
+     document.cookie="dt_range_from="+dt_range_from;
+     document.cookie="dt_range_frm_txt="+from_date;
+
+     document.cookie="dtrange_to=true";
+     document.cookie="dt_range_to="+dt_range_to;
+     document.cookie="dt_range_to_txt="+to_date;
+     $(".tag_filter").show();
+     $(".date_range_tag").show();
+     $("#from_tag_txt").html(from_date +" to "+ to_date);
+    }else{
+     $(".date_range_tag").hide();
+     $.removeCookie("dtrange_from");
+     $.removeCookie("dt_range_from");
+     $.removeCookie("dt_range_frm_txt");
+     $.removeCookie("dtrange_to");
+     $.removeCookie("dt_range_to");
+     $.removeCookie("dt_range_to_txt");
+    }
+    }
+    }else if(dt_range_from == "" || dt_range_to === 'undefined'){
+       daterange = false;
+
+       $(".date_tag").hide();
+       $.removeCookie("daterange");
+       $.removeCookie("dt_range");
+       $.removeCookie("dt_range_txt");
+       $(".date_range_tag").hide();
+       $.removeCookie("dtrange_from");
+       $.removeCookie("dt_range_from");
+       $.removeCookie("dt_range_frm_txt");
+       $.removeCookie("dtrange_to");
+       $.removeCookie("dt_range_to");
+       $.removeCookie("dt_range_to_txt");
+       //document.cookie='daterange=false';
+    }
+
+    if(last_touch != "" && typeof last_touch != 'undefined')
+
+    {
+      last_tch = true;
+      last_touch_txt=last_touch;
+      document.cookie="last_tch=true";
+      document.cookie="last_touch="+last_touch;
+      document.cookie="last_touch_txt="+last_touch_txt;
+      $(".tag_filter").show();
+      $(".last_touch_tag").show();
+      $("#last_touch_tag_txt").html(last_touch_txt)
+    }
+    else if(last_touch == "" || typeof last_touch === 'undefined')
+
+    {
+      last_tch = false;
+      $(".last_touch_tag").hide();
+      $.removeCookie("last_tch");
+      $.removeCookie("last_touch");
+      $.removeCookie("last_touch_txt");
+    }
+    if(cre_by_val == "" || typeof cre_by_val === 'undefined'){
+
+      $(".created_by_tag").hide();
+      $.removeCookie("cre_by");
+      $.removeCookie("cre_by_val");
+      $.removeCookie("cre_by_txt");
+    //document.cookie='cre_by=false';
+    }
+    if(asg_by_val != "" && typeof asg_by_val != 'undefined'){
+
+      asg_by = true;
+      //asg_by_txt=$('#assg_by_'+asg_by_val).attr("a_name");
+
+      var asg_by_txt = "";
+      $("input:checkbox[name='assg_by']:checked").each(function() {
+        asg_by_txt += $('#assg_by_'+$(this).val()).attr("a_name") + '|';
+      });
+      asg_by_txt = asg_by_txt.slice(0,-1);
+      document.cookie="asg_by=true";
+      document.cookie="asg_by_val="+asg_by_val;
+      document.cookie="asg_by_txt="+asg_by_txt;
+      $(".tag_filter").show();
+      $(".assigned_to_tag").show();
+      $("#assigned_to_tag_txt").html(asg_by_txt.split('|').join(','))
+    }
+    if(asg_by_val == "" || typeof asg_by_val === 'undefined'){
+
+      $(".assigned_to_tag").hide();
+      $.removeCookie("asg_by");
+      $.removeCookie("asg_by_val");
+      $.removeCookie("asg_by_txt");
+    //document.cookie='asg_by=false';
+    }
+    if(loc_val != "" && typeof loc_val != 'undefined'){
+
+      loc = true;
+      //loc_txt=$('#country_'+loc_val).attr("coun_name");
+      var loc_txt = "";
+      $("input:checkbox[name='coun']:checked").each(function() {
+        loc_txt += $('#country_'+$(this).val()).attr("coun_name") + '|';
+      });
+      loc_txt = loc_txt.slice(0,-1);
+      document.cookie="loc=true";
+      document.cookie="loc_val="+loc_val;
+      document.cookie="loc_txt="+loc_txt;
+      $(".tag_filter").show();
+      $(".location_tag").show();
+      $("#location_tag_txt").html(loc_txt.split('|').join(','))
+    }
+    if(loc_val == "" || typeof loc_val === 'undefined'){
+
+      $(".location_tag").hide();
+    //document.cookie='loc=false';
+     $.removeCookie("loc");
+     $.removeCookie("loc_val");
+     $.removeCookie("loc_txt");
+    }
+    if(priority_val != "" && typeof priority_val != 'undefined'){
+
+      priority = true;
+      //priority_txt=$('#priority_'+priority_val).attr("prio_name");
+
+      var priority_txt = "";
+      $("input:checkbox[name='prio']:checked").each(function() {
+        priority_txt += $('#priority_'+$(this).val()).attr("prio_name") + '|';
+      });
+      priority_txt = priority_txt.slice(0,-1);
+      document.cookie="priority=true";
+      document.cookie="priority_val="+priority_val;
+      document.cookie="priority_txt="+priority_txt;
+      $(".tag_filter").show();
+      $(".priority_tag").show();
+      $("#priority_tag_txt").html(priority_txt.split('|').join(','));
+    }
+    if(priority_val == "" || typeof priority_val === 'undefined'){
+
+      $(".priority_tag").hide();
+      $.removeCookie("priority");
+      $.removeCookie("priority_val");
+      $.removeCookie("priority_txt");
+    //document.cookie='priority=false';
+    }
+    if(next_val != "" && typeof next_val != 'undefined'){
+      next = true;
+      //next_txt=$('#next_'+next_val).attr("next_name");
+
+      var next_txt = "";
+      $("input:checkbox[name='next']:checked").each(function() {
+        next_txt += $('#next_'+$(this).val()).attr("next_name") + '|';
+      });
+      next_txt = next_txt.slice(0,-1);
+      document.cookie="next=true";
+      document.cookie="next_val="+next_val;
+      document.cookie="next_txt="+next_txt;
+      $(".tag_filter").show();
+      $(".next_tag").show();
+      $("#next_tag_txt").html(next_txt.split('|').join(','));
+    }
+    else if(next_val == "" || typeof next_val === 'undefined')
+
+    {
+      $(".next_tag").hide();
+      $.removeCookie("next");
+      $.removeCookie("next_val");
+      $.removeCookie("next_txt");
+    }
+    if(stage_val != "" && typeof stage_val != 'undefined'){
+
+      stage = true;
+      //priority_txt=$('#stage_'+stage_val).attr("stage_name");
+
+      var stage_txt = "";
+      $("input:checkbox[name='stage']:checked").each(function() {
+        stage_txt += $('#stage_'+$(this).val()).attr("stage_name") + '|';
+      });
+      stage_txt = stage_txt.slice(0,-1);
+      document.cookie="stage=true";
+      document.cookie="stage_val="+stage_val;
+      document.cookie="stage_txt="+stage_txt;
+      $(".tag_filter").show();
+      $(".stage_tag").show();
+      $("#stage_tag_txt").html(stage_txt.split('|').join(','));
+    }
+    if(stage_val == "" || typeof stage_val === 'undefined'){
+
+      $(".stage_tag").hide();
+      $.removeCookie("stage");
+      $.removeCookie("stage_val");
+      $.removeCookie("stage_txt");
+    //document.cookie='stage=false';
+    }
+    if(user_label_val != "" && typeof user_label_val != 'undefined'){
+      user_label = true;
+      var user_label_txt = "";
+      $("input:checkbox[name='userLabel']:checked").each(function() {
+        user_label_txt += $('#user_label_'+$(this).val()).attr("user_label_name") + '|';
+      });
+      user_label_txt = user_label_txt.slice(0,-1);
+      document.cookie="user_label=true";
+      document.cookie="user_label_val="+user_label_val;
+      document.cookie="user_label_txt="+user_label_txt;
+      $(".tag_filter").show();
+      $(".user_label_tag").show();
+      $("#user_label_tag_txt").html(user_label_txt.split('|').join(','));
+    }
+    if(user_label_val == "" || typeof user_label_val === 'undefined'){
+      $(".stage_tag").hide();
+      $.removeCookie("user_label");
+      $.removeCookie("user_label_val");
+      $.removeCookie("user_label_txt");
+    }
+    $( "#task_header .nav-tabs li" ).each(function() {
+      if ($(this).hasClass("active"))
+        dtype=$(this).attr("id")
+    });
+    var opp_val = $("#opp").val();
+
+    if(is_opportunity == null && is_label == null && cre_by_val == "" && asg_by_val == "" && loc_val == "" && priority_val == "" && next_val == "" && opp_val != 1 && (last_touch == "" || typeof last_touch === 'undefined') && dt_range_from == "" && dt_range_to == "" && tag_val == "" && ((dt_range == "" || typeof dt_range === 'undefined') && dt_range != "Custom Date" && stage_val == "" && user_label_val == "")){
+      $('.reset_tag').hide();
+      $(".tag_filter").hide();
+
+      //document.cookie='daterange=false';
+      //document.cookie='cre_by=false';
+      //document.cookie='asg_by=false';
+      //document.cookie='loc=false';
+      //document.cookie='priority=false';
+      $("#incoming_div_val").val("0");
+      $("#working_div_val").val("0");
+      $("#qualify_div_val").val("0");
+      $("#won_div_val").val("0");
+      $("#lost_div_val").val("0");
+      $("#not_qualify_div_val").val("0");
+      $("#junk_div_val").val("0");
+      $("#un_assigned_div_val").val("0");
+      $("#no_contact_div_val").val("0");
+      $("#follow_up_required_div_val").val("0");
+      $("#follow_up_div_val").val("0");
+      $("#quoted_div_val").val("0");
+      $("#meeting_scheduled_div_val").val("0");
+      $("#forecasted_div_val").val("0");
+      $("#waiting_for_project_requirement_div_val").val("0");
+      $("#proposal_div_val").val("0");
+      $("#estimate_div_val").val("0");
+    }
+    else if(dt_range == "Custom Date" &&(dt_range_from == "" && dt_range_to == ""))
+    {
+     $('.reset_tag').hide();
+    }
+
+    else if(typeof cre_by_val === 'undefined' && typeof asg_by_val === 'undefined' && typeof loc_val === 'undefined' && typeof priority_val === 'undefined' && typeof next_val === 'undefined' && typeof dt_range === 'undefined' && typeof last_touch === 'undefined' && (typeof dt_range_from === 'undefined' || dt_range_from == "") && (typeof dt_range_to === 'undefined' || dt_range_to == "")  && typeof stage_val === 'undefined' && typeof user_label_val === 'undefined')
+    {
+
+      $('.reset_tag').hide();
+    }
+    else{
+
+
+      $('.reset_tag').show();
+
+      $(".tag_dd").show();
+    }
+    //alert(dt_range_to)
+    if((typeof cre_by_val != "undefined" || cre_by_val != "") || (typeof asg_by_val != "undefined" || asg_by_val != "") || (typeof loc_val != "undefined" || loc_val != "") || (typeof priority_val != "undefined" || priority_val != "") || (typeof next_val != "undefined" || next_val != "") || (typeof dt_range != 'undefined' && dt_range != "Custom Date") || tag_val != "" || (typeof stage_val != "undefined" || stage_val != "") || (typeof user_label_val != "undefined" || user_label_val != "") || is_opportunity != "" || is_label != "")
+    {
+
+      $.ajax( {
+        type: "POST",
+        url: posturl ,
+        data: {cre_by: cre_by, cre_by_val: cre_by_val, asg_by: asg_by, asg_by_val: asg_by_val, loc: loc, loc_val: loc_val, priority: priority, priority_val: priority_val,next: next, next_val: next_val, daterange: daterange, dt_range: dt_range, last_touch: last_touch, dtrange_from: dtrange_from,dt_range_from: dt_range_from,dtrange_to: dtrange_to,dt_range_to: dt_range_to,is_opportunity: is_opportunity,tag:tag_val, stage: stage, stage_val: stage_val,dtype: dtype,label_type:is_label,user_label: user_label, user_label_val: user_label_val},
+        success: function(result) {
+          //alert(divid);
+          $("#"+divid).html("");
+          $("#"+divid).html(result);
+        }
+      });
+     }
+    else if(dt_range_from != "" && dt_range_to != "")
+    {
+
+       $.ajax( {
+        type: "POST",
+        url: posturl ,
+        data: {cre_by: cre_by, cre_by_val: cre_by_val, asg_by: asg_by, asg_by_val: asg_by_val, loc: loc, loc_val: loc_val, priority: priority, priority_val: priority_val,next: next, next_val: next_val, daterange: daterange, dt_range: dt_range, last_touch: last_touch, dtrange_from: dtrange_from,dt_range_from: dt_range_from,dtrange_to: dtrange_to,dt_range_to: dt_range_to,is_opportunity: is_opportunity,tag:tag_val, stage: stage, stage_val: stage_val, user_label: user_label, user_label_val: user_label_val,dtype: dtype,label_type:is_label},
+        success: function(result) {
+          //alert(divid);
+          $("#"+divid).html("");
+          $("#"+divid).html(result);
+        }
+      });
+    }
+    else if(cre_by_val == "" && asg_by_val == "" && loc_val == "" && priority_val == "" && next_val == "" && dt_range == "" && (dt_range_from == "" || dt_range_to == "") && stage_val == "" && usr_label_val == "")
+    {
+
+       $.ajax( {
+        type: "POST",
+        url: posturl ,
+        data: {cre_by: cre_by, cre_by_val: cre_by_val, asg_by: asg_by, asg_by_val: asg_by_val, loc: loc, loc_val: loc_val, priority: priority, priority_val: priority_val,next: next, next_val: next_val, daterange: daterange, dt_range: dt_range, last_touch: last_touch, dtrange_from: dtrange_from,dt_range_from: dt_range_from,dtrange_to: dtrange_to,dt_range_to: dt_range_to, is_opportunity: is_opportunity,tag:tag_val, stage: stage, stage_val: stage_val, user_label: user_label, user_label_val: user_label_val,dtype: dtype,label_type:is_label},
+        success: function(result) {
+          //alert(result);
+          $("#"+divid).html("");
+          $("#"+divid).html(result);
+        }
+      });
+
+    }
+    else if(typeof cre_by_val === 'undefined' && typeof asg_by_val === 'undefined' && typeof loc_val === 'undefined'  && typeof next_val === 'undefined' && typeof dt_range === 'undefined' && (dt_range_from == "" || dt_range_to == "") && typeof stage_val === 'undefined' && typeof user_label_val === 'undefined')
+    {
+       $.ajax( {
+        type: "POST",
+        url: posturl ,
+        data: {cre_by: cre_by, cre_by_val: cre_by_val, asg_by: asg_by, asg_by_val: asg_by_val, loc: loc, loc_val: loc_val, priority: priority, priority_val: priority_val,next: next, next_val: next_val, daterange: daterange, dt_range: dt_range, last_touch: last_touch, dtrange_from: dtrange_from,dt_range_from: dt_range_from,dtrange_to: dtrange_to,dt_range_to: dt_range_to, is_opportunity: is_opportunity,tag:tag_val, stage: stage, stage_val: stage_val, user_label: user_label, user_label_val: user_label_val,dtype: dtype,label_type:is_label},
+        success: function(result) {
+          //alert(result);
+          $("#"+divid).html("");
+          $("#"+divid).html(result);
+        }
+      });
+
+    }
+  }
+
+
+  function move_work_deal(deal_id)
+  {
+    $("#finish_working").show();
+    $("#deal_id_move").val(deal_id);
+    $("#deal_move_is_current").attr("checked", true);
+    $("#incoming_move").hide();
+    $("#pipeline_move").show();
+
+  }
+  function move_wonorlost_deal(deal_id)
+  {
+    $("#finish_working").hide();
+    $("#deal_move_is_current").attr("checked", true);
+    $("#deal_id_move").val(deal_id);
+    $("#incoming_move").hide();
+    $("#pipeline_move").show();
+
+  }
+
+  function reset_pop()
+  {
+    $("#deal_move_note").val('');
+    $("input:radio").attr('checked',false);
+    $("#chk_radio_act").hide();
+  }
+  function move_deal(deal_id)
+  {
+
+   $("#deal_id_move").val(deal_id);
+   $("#incoming_move").show();
+   $("#pipeline_move").hide();
+  }
+  function check_apply(obj, deal_tab)
+  {
+    var deals = [];
+    var labels= [];
+    $(obj).parent('div').parent('li').parent('ul').find('input:checked').each(function() {
+      labels.push($(this).val());
+    });
+    $(".tab-pane.active").find('#deallist').find('input:checked').each(function() {
+      deals.push($(this).val());
+    });
+    if(deals.length == 0 && labels.length == 0)
+    {
+      $("#"+deal_tab+"_applylabel_li").hide();
+      $("."+deal_tab+"_mng_lbl_li").show();
+    }
+    else
+    {
+      $("#"+deal_tab+"_applylabel_li").show();
+      $("."+deal_tab+"_mng_lbl_li").hide();
+    }
+  }
+  $( "#filterNow" ).click(function() {
+    //$("#filter_options").slideToggle( "slow" );
+    $("#filter_icon").toggleClass('icon-chevron-down icon-chevron-up');
+  });
+
+  $(".filterSelectDropdow").click(function(){
+    //alert(this.name == "li_opportunity")
+    if(this.name == "li_opportunity"){
+      document.cookie="opportunity=true";
+      $(".tag_filter").show();
+      $(".opportunity_tag").show();
+      $("#opportunity_tag_txt").html("Opportunities");
+
+      $(".reset_tag").show();
+      $("#opp").val(1);
+
+    }
+    multi_filter_deals();
+  });
+
+  function reset_deal_filter(id,class_n){
+
+    $('.'+id+"_tag").hide();
+    //$('#filter_'+id).prop('selectedIndex',0);
+    if(id == "date_range")
+    {
+      $('.'+class_n).removeAttr('checked');
+      $('#deal_from').val('');
+      $('#deal_to').val('');
+    }
+    else
+    {
+      $('.'+class_n).removeAttr('checked');
+    }
+    $("#show_filter_dealmsg").html('');
+
+    $("#filter_get_val").val(0);
+
+    if(id == "opportunity"){
+      $("#opp").val(0);
+      $('.opportunity_tag').hide();
+      $.removeCookie("opportunity");
+    }
+    if(id == "label_type"){
+      $('.label_tag').hide();
+      $.removeCookie("label_type");
+      $.removeCookie("label_name");
+    }
+    if(id == "tag"){
+      $('.deal_tag').hide();
+      $.removeCookie("tag");
+      $.removeCookie("page_tab");
+    }
+    if(!$('.tag_dd').is(':visible')){
+      $('.tag_filter').hide();
+    }
+    multi_filter_deals();
+  }
+
+
+
+
+  function reset_all_deal_filter(){
+    $("#filter_get_val").val(0);
+
+    $('.label_tag').hide();
+    $('.created_by_tag').hide();
+    $('.assigned_to_tag').hide();
+    $('.location_tag').hide();
+    $('.priority_tag').hide();
+    $('.opportunity_tag').hide();
+    $('.stage_tag').hide();
+    $('.user_label_tag').hide();
+    $('.reset_tag').hide();
+    $('.com_cls').hide();
+    $('.tag_filter').hide();
+    $('.next_tag').hide();
+    $("#show_filter_dealmsg").html('');
+    $('.cre_by_c').removeAttr('checked');
+    $('.asg_by_c').removeAttr('checked');
+    $('.country_c').removeAttr('checked');
+    $('.priority_c').removeAttr('checked');
+    $('.any_time').removeAttr('checked');
+    $('.lst_tch').removeAttr('checked');
+    $('.next_c').removeAttr('checked');
+    $('.stage_c').removeAttr('checked');
+    $('.user_label_c').removeAttr('checked');
+
+    //$('#filter_created_by').prop('selectedIndex',0);
+    //$('#filter_assigned_to').prop('selectedIndex',0);
+    //$('#filter_location').prop('selectedIndex',0);
+    //$('#filter_priority').prop('selectedIndex',0);
+    //$('#filter_date').prop('selectedIndex',0);
+    //$('#filter_last_touch').prop('selectedIndex',0);
+    $('#deal_from').val('');
+    $('#deal_to').val('');
+    $("#opp").val(0);
+    $.each(["cre_by","cre_by_val","cre_by_txt","daterange","dt_range","dt_range_txt","asg_by","asg_by_val","asg_by_txt","loc","loc_val","loc_txt","priority","priority_val","priority_txt","next","next_val","next_txt","last_touch","last_tch","last_touch_txt","dtrange_from","dt_range_from","dt_range_frm_txt","dtrange_to","dt_range_to","dt_range_to_txt","page_tab","opportunity","tag","stage","stage_val","label_type","label_name"], function( index, value ) {
+       $.removeCookie(value);
+    });
+    //var cookies = document.cookie.split(";");
+    //for(var i=0; i < cookies.length; i++) {
+      //var equals = cookies[i].indexOf("=");
+      //var name = equals > -1 ? cookies[i].substr(0, equals) : cookies[i];
+      //$.removeCookie("+ name +");
+    //}
+    //document.cookie='daterange=false';
+    //document.cookie='cre_by=false';
+    //document.cookie='asg_by=false';
+    //document.cookie='loc=false';
+    //document.cookie='priority=false';
+    multi_filter_deals();
+  }
+  function reset_filter_tabs(){
+    $('.created_by_tag').hide();
+    $('.assigned_to_tag').hide();
+    $('.location_tag').hide();
+    $('.priority_tag').hide();
+    $('.stage_tag').hide();
+    $('.user_label_tag').hide();
+    $('.reset_tag').hide();
+    $('.last_touch_tag').hide();
+    $('.stage_tag').hide();
+    $('#filter_created_by').prop('selectedIndex',0);
+    $('#filter_assigned_to').prop('selectedIndex',0);
+    $('#filter_location').prop('selectedIndex',0);
+    $('#filter_priority').prop('selectedIndex',0);
+    $('#filter_date').prop('selectedIndex',0);
+    $('#filter_last_touch').prop('selectedIndex',0);
+    $('#individual_filter_msg').hide();
+    $('#individual_filter_msg').html('');
+    $('#individual_filter_present').val(false);
+    $('#filter_stage').prop('selectedIndex',0);
+
+  }
+  function reset_filter_val(){
+    $("#filter_get_val").val(0);
+  }
+
+  function reset_all_checkbox()
+  {
+   $('.label_chk_box:checkbox').each(function()
+   {
+    this.checked = false;
+   });
+  }
+  //Changing the assignee function for multiple deals selected
+  function changeAssignee(obj)
+  {
+    var deals = $("#mass_deal_ids").val();
+    var labels= [];
+    $(obj).parent('ul').find('input:checked').each(function() {
+      labels.push($(this).val());
+    });
+    //$(".tab-pane.active").find('#deallist').find('input:checked').each(function() {
+      //deals.push($(this).val());
+    //});
+    var posturl= "leads/apply_label_to_lead";
+    var qstring= "?deals="+deals+"&labels="+labels;
+    $.ajax( {
+      type: "POST",
+      url: posturl + qstring,
+      success: function(result) {
+        window.location.reload();
+        //alert(result);
+      }
+    });
+  }
+  function quick_edit(id){
+    $.ajax({
+      type: "POST",
+      url: "/quick_lead",
+      dataType: 'json',
+      async: false,
+      data: {deal_id: id},
+      beforeSend: function(){
+        $("#task_loader").show();
+      },
+      success: function(data)
+      {
+      },
+      error: function(data) {
+        $("#task_loader").hide();
+      },
+      complete: function(data) {
+        $("#quickeditModal").modal("show");
+        $("#deal_content").html(data.responseText);
+        $("#task_loader").hide();
+
+      }
+    });
+  }
+  function display_hide_submenu(type)
+  {
+    if(type == "created")
+    {
+      //$('#cre_by_app').html('<li><div class="editableform-loading"></div></li>')
+
+      reser_all_submenu();
+      $('.cre_arw').show();
+      $('#cr').show();
+
+    }
+    else if(type == "assigned")
+    {
+      //$('#asg_by_app').html('<li><div class="editableform-loading"></div></li>')
+      reser_all_submenu();
+      $('.asg_arw').show();
+      $('#asg').show();
+    }
+    else if(type == "location")
+    {
+      //$('#loc_by_app').html('<li><div class="editableform-loading"></div></li>')
+      reser_all_submenu();
+      $('.loc_arw').show();
+      $('#lo').show();
+    }
+    else if(type == "priority")
+    {
+      reser_all_submenu();
+      $('.pri_arw').show();
+      $('#pr').show();
+    }
+    else if(type == "anytime")
+    {
+      reser_all_submenu();
+      $('.any_arw').show();
+      $('#any').show();
+    }
+    else if(type == "last")
+    {
+      reser_all_submenu();
+      $('.lst_arw').show();
+      $('#lat').show();
+    }
+   else if(type == "next")
+    {
+      reser_all_submenu();
+      $('.next_arw').show();
+      $('#nex').show();
+    }
+    else if(type == "stage")
+    {
+      reser_all_submenu();
+      $('.stg_arw').show();
+      $('#stg').show();
+    }
+    else if(type == "user_label")
+    {
+      reser_all_submenu();
+      $('.lbl_arw').show();
+      $('#lbl').show();
+    }
+  }
+  function reser_all_submenu()
+  {
+   $('.cre_arw').hide();
+   $('#cr').hide();
+   $('.asg_arw').hide();
+   $('#asg').hide();
+   $('.loc_arw').hide();
+   $('#lo').hide();
+   $('.pri_arw').hide();
+   $('#pr').hide();
+   $('.any_arw').hide();
+   $('#any').hide();
+   $('.lst_arw').hide();
+   $('#lat').hide();
+   $('.next_arw').hide();
+   $('#nex').hide();
+   $('.stg_arw').hide();
+   $('#stg').hide();
+   $('.lbl_arw').hide();
+   $('#lbl').hide();
+  }
+   
+  function scrollbtm(obj)
+  {
+   if($(obj).closest('tr').next().length == 0){$('html, body').animate({scrollTop: $(document).height()}, 800);}
+  }
+  function chk_radio_button(id,type)
+  {
+    remove_datatable_cookie();
+    if(type == "created")
+    {
+      $("input:checkbox[name='created_by']:checked").each(function() {
+        var values = $(this).val();
+        $("#cre_by_"+values).attr("checked", true);
+      });
+    }
+    else if(type == "assigned")
+    {
+     $("input:checkbox[name='assg_by']:checked").each(function() {
+      var values = $(this).val();
+      $("#assg_by_"+values).prop("checked", true);
+     });
+    }
+    else if(type == "loc")
+    {
+     $("input:checkbox[name='coun']:checked").each(function() {
+       var values = $(this).val();
+       $("#country_"+values).attr("checked", true);
+     });
+    }
+    else if(type == "priority")
+    {
+     $("input:checkbox[name='prio']:checked").each(function() {
+       var values = $(this).val();
+       $("#priority_"+values).attr("checked", true);
+     });
+    }
+
+    else if(type == "any")
+    {
+     $("#"+id).prop("checked", true);
+    }
+    else if(type == "last")
+    {
+     $("#"+id).prop("checked", true);
+    }
+
+    else if(type == "next")
+    {
+     $("input:checkbox[name='next']:checked").each(function() {
+       var values = $(this).val();
+       $("#next_"+values).attr("checked", true);
+     });
+    }
+    else if(type == "stage")
+    {
+     $("input:checkbox[name='stage']:checked").each(function() {
+       var values = $(this).val();
+       $("#stage_"+values).attr("checked", true);
+     });
+    }
+    else if(type == "user_label")
+    {
+     $("input:checkbox[name='user_label']:checked").each(function() {
+       var values = $(this).val();
+       $("#user_label_"+values).attr("checked", true);
+     });
+    }
+  }
+  function show_list_view(){
+    $("#task_loader").show();
+    $.ajax({
+      url: '/deals/get_list_view',
+      success: function(result) {
+        $("#view_content").html("").html(result);
+        get_deals('all');
+        $("#task_loader").hide();
+      }
+    });
+  }
+
+  function show_kanban_view(){
+    $("#task_loader").show();
+    $.ajax({
+      url: '/deals/get_kanban_view',
+      success: function(result) {
+        $("#view_content").html("").html(result);
+        $("#task_loader").hide();
+      }
+    });
+  }
+
+  $('#kanban_stage').bind('ajax:complete', function( evt, data, status, xhr) {
+    $('#dealsettingKanbanModal').modal('hide');
+    $(".kanban_view").html("").html(data['responseText']);
+    $("#task_loader").hide();
+  });
+  $.fn.editable.defaults.mode = 'inline';
+  $('#dataTableall .test a').editable({
+    type: 'text',
+    name: 'Amount',
+    title: 'Amount'
+  });

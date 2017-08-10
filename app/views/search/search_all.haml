@@ -1,0 +1,139 @@
+:css
+  .content-body{
+    margin:top:50px;
+  }
+.container
+  .row
+    .cb10
+    .cb10
+    .col-md-12
+      .con-box1
+        - unless @deals.blank? && @individual_contacts.blank? && @tasks.blank?
+          %h2{style: "text-align: center;color: green;"}
+            Searched record for :
+            %span{style: "color:#6e6eba"}
+              =  params[:query]
+        - unless @deals.blank?
+          %h3
+            Leads(
+            = "#{@deals.count}"
+            )
+          %table.table.table-striped.table-hover{style: "border: 1px solid #ddd;"}
+            %thead{style: "background-color: rgb(237, 238, 240);"}
+              %tr
+                %th
+                  Title
+                %th
+                  Name
+                %th 
+                  Email
+                %th
+                  Country
+                %th
+                  Action
+            %tbody
+              - @deals.each do |deal|
+                %tr
+                  %td
+                    = deal.title
+                  %td
+                    = deal.contact_info['name'] if deal.contact_info.present?
+                  %td
+                    = deal.contact_info['email'] if deal.contact_info.present?
+                  %td
+                    - country = Country.find_by_id(deal.country_id)
+                    = country.name if country
+                  %td
+                    = link_to "Show", "/leads/#{deal.id}"
+        - unless @individual_contacts.blank?
+          %h3 
+            Contacts(
+            = "#{@individual_contacts.count}"
+            )
+
+          %table.table.table-striped.table-hover{style: "border: 1px solid #ddd;"}
+            %thead{style: "background-color: rgb(237, 238, 240);"}
+              %tr
+                %th
+                  First Name
+                %th
+                  Last Name
+                %th 
+                  Email
+                %th
+                  Action
+            %tbody
+              - @individual_contacts.each do |individual_contact|
+                %tr
+                  %td
+                    = individual_contact.first_name
+                  %td
+                    - if individual_contact.last_name
+                      = individual_contact.last_name
+                    - else
+                      = "NA"
+                  %td
+                    = individual_contact.email
+                  %td
+                    = link_to "Show", "/individual_contact/#{individual_contact.id}"
+        - unless @tasks.blank?
+          %h3 
+            Tasks(
+            = "#{@tasks.count}"
+            )
+          %table.table.table-striped.table-hover{style: "border: 1px solid #ddd;"}
+            %thead{style: "background-color: rgb(237, 238, 240);"}
+              %tr
+                %th
+                  Title
+                %th
+                  Task Type
+                %th 
+                  Priority
+                %th
+                  Action
+
+            %tbody
+              - @tasks.each do |task|
+                %tr
+                  %td
+                    = task.title
+                  %td
+                    = TaskType.find(task.id).name
+                  %td
+                    = PriorityType.find(task.priority_id).name
+                  %td
+                    %a{"data-toggle" => "modal", href: "#showTaskModal", rel: "popup", title: "Show", onclick: "show_task_details(#{task.id})"}
+                      Show
+
+        - if @deals.blank? && @individual_contacts.blank? && @tasks.blank?
+          %h2{style: "text-align: center;color:#d26565;"}
+            No record found for :
+            %span{style: "color:#6e6eba"}
+              =  params[:query]
+#showTaskModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        %h4.modal-title Task Details
+      .modal-body
+        
+        
+:javascript
+  function show_task_details(id){
+    $("#showTaskModal .modal-body").html("<img src='/assets/ajax-loader2.gif'/>");
+    $.ajax({
+      url: 'get_task_details',
+        type: 'GET',
+        data: {id: id},
+        success: function(res) {
+          $("#editStageModal").modal('hide');
+          $("#showTaskModal .modal-body").html(res);
+          $("#showTaskModal").show();
+        },
+        error: function(res) {
+          $("#lead_error").show();
+        }
+    });
+  }

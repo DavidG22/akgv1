@@ -1,0 +1,480 @@
+.table-responsive
+  %table.table.white-table.table-hover.ajax-lead-listing{:id=>"dataTable#{params[:dtype]}",style: "box-shadow: 0 0 5px #aaa;", "data-source"=>leads_url(format: 'json',params: {cuser: current_user.id,_type: params[:dtype],filtertype: params[:filtertype],filtervalue: params[:filtervalue], assigned_to: params[:assigned_to], created_by: params[:created_by], cre_by: cookies[:cre_by], cre_by_val: cookies[:cre_by_val], asg_by: cookies[:asg_by], asg_by_val: cookies[:asg_by_val], loc: cookies[:loc], loc_val: cookies[:loc_val], priority: cookies[:priority], priority_val: cookies[:priority_val], next: cookies[:next], next_val: cookies[:next_val], daterange: cookies[:daterange], dt_range: cookies[:dt_range],last_touch: cookies[:last_touch],last_tch: cookies[:last_tch],q: cookies[:deal_quarter], y: cookies[:deal_year], is_opportunity: cookies[:opportunity], tag: cookies[:tag], stage: cookies[:stage], stage_val: cookies[:stage_val], label_type: cookies[:label_type], user_label: cookies[:user_label], user_label_val: cookies[:user_label_val]})}
+    %thead
+      %tr
+        %th.dropdown#deal_label_menu{style: "width:35px !important"}
+          %a.dropdown-toggle{:id=> ("#{params[:dtype]}Dropdown"),:href=>"javascript:","data-toggle" => "", :style=> "cursor:default;text-decoration:none;"}
+            .label_arrow{:id=> ("#{params[:dtype]}Label")}
+              %span.icon-chevron-down
+                =image_tag("drop-down-arrow.png")
+          %ul.dropdown-menu.custom-menu.fl.show-drop-down{:style=>"right:auto;left:5px;top:27px;"}
+            %li.arrow_top{style: "left:0;z-index:99;top: -11px;"}
+            / %li
+            /   %ul.show-drop-down_data{:style => "list-style: none;padding-left:5px;padding-top:5px;"}
+            /     -current_user.user_labels.all.each do |lbl|
+            /       %li
+            /         .fl
+            /           %input{:type=>"checkbox",:value=>lbl.id,:onclick=>"check_apply(this, '#{params[:dtype]}');"}
+            /         .fl{style:"margin-left:4px;width: 105px;word-wrap: break-word;"}
+            /           =lbl.name
+            /         .cb
+            / %li.divider
+            / %li{:id=> ("#{params[:dtype]}_applylabel_li") ,:onclick=>"addLabelToDeal(this);",:style=>"padding:5px 5px 0px 16px;cursor:pointer;display:none;"}
+            /   Apply
+           
+            / %li{:class=>"#{params[:dtype]}_mng_lbl_li","data-toggle" => "modal", href: "#labelModal", rel: "popup", title: "Add a Label",:style=>"padding:5px 5px 0px 16px;cursor:pointer"}
+            /   Add Label 
+            / %li{:class=>"#{params[:dtype]}_mng_lbl_li"}
+            /   %a{:href=>"/settings/#user_label",:style=>"padding:5px 5px 0px 16px;cursor:pointer;color:#666666"}
+            /     Manage Label
+            %li{"data-toggle" => "modal", href: "#dealmoveModal", rel: "popup", title: "Move selected leads",onclick: "$('.show_all').show();$('#assigned_to_user').val('');$('.deal_s_'+$('.#{params[:dtype]}_chk_box_class').attr('deal_status')).hide()",:style=>"padding:5px 5px 0px 8px;cursor:pointer"}
+              %span.add_i_move
+              Move Leads
+            %li.divider
+            %li{"data-toggle" => "modal", href: "#confirmDealDelete", rel: "popup", title: "Delete selected leads",:style=>"padding:5px 5px 0px 8px;cursor:pointer"}
+              %span.glyphicon.glyphicon-trash
+              Delete Leads
+        %th{style: "width:200px !important"} Name
+        %th{style: "width:200px !important"} Opportunity
+        %th{style: "width:160px !important"} Contact
+        %th.lead-location Location
+        %th Amount
+        %th{style: "width:110px"} Next Action
+        %th
+          %span{style: "margin-left: -15px;"}
+            = (params[:dtype]=="all" ? 'Stage' : 'Created')
+        %th{style: "padding-right: 15px;width: 60px;"} Type
+    %tbody
+                     
+:javascript 
+  $('#task_loader').show();
+  "use strict";
+  $(".show-drop-down_data").on("click", function(event){
+    event.stopPropagation();
+  });
+
+  $(function() {
+  oTable_other= $('#dataTable#{params[:dtype]}').dataTable({
+  oLanguage: {"sLengthMenu": "_MENU_" },
+    sPaginationType: "bootstrap",
+    bDestroy: true,
+    bJQueryUI: true,
+    aLengthMenu: [[20, 25, 50, 100], [20, 25, 50, 100]],
+    iDisplayLength: 20,
+    bProcessing: reset_other_badge_count(),
+    bServerSide: true,
+    "bStateSave": true,
+    aoColumns: [{sWidth: '70px'},{sClass: 'col-md-3'},{sClass: 'col-md-3'},null,{sWidth: '110px'},{sClass: 'test'},null,null,null],
+    "sDom": '<"dtTop dtTables">rt<"dtBottom"><"dtInfo fl"i><"dtPagination fr"p>',
+    sAjaxSource: $('#dataTable#{params[:dtype]}').data('source'),
+    aaSorting: [[0,'desc']],
+    oLanguage: {
+      oPaginate: {
+        sPrevious: "Prev"
+      }
+    },
+    aoColumnDefs: [
+      {
+        aTargets: [0],
+        bSortable: false,
+        mRender: function (data, type, row ) {
+                
+                if((($("#individual_filter_present").val() == false || $("#individual_filter_present").val() == "false")) && $("##{params[:dtype]}").hasClass("active"))
+                  $("#badge_#{params[:dtype]}").html("(0)");
+                  
+                  $("#badge_#{params[:dtype]}").html('(' + row[25] + ')');
+                  if(("#{cookies[:cre_by]}" == "true" ) || ("#{cookies[:asg_by]}" == "true" ) || ("#{cookies[:loc]}" == "true" ) || ("#{cookies[:priority]}" == "true" ) || ("#{cookies[:daterange]}" == "true" ) || ("#{cookies[:last_tch]}" == "true" ) || ("#{cookies[:dtrange_from]}" == "true" && "#{cookies[:dtrange_to]}" == "true") || ("#{cookies[:tag]}" != '') || ("#{cookies[:stage]}" == 'true') || ("#{cookies[:opportunity]}" == "true") || ("#{cookies[:label_type]}" != "")){
+                   $("#show_filter_dealmsg").html('Filtered ' + row[25] + ' deals ');
+                  }
+                  if(row[25] > 25){
+                    $(".dataTables_length").show();
+                    $('.dataTables_length select').addClass('form-control');
+                  }
+                  if(row[16]=="true"){
+                   str="<div class='dropdown' style='text-align:center'> <div class='deal_set dropdown-toggle more-in-ll' data-toggle='dropdown' onclick=\"scrollbtm(this);$('#clicked_button_ref').val('listmenu');\"  rel='tooltip' title='Actions' style='cursor:pointer'></div>";
+                   }
+                  if(row[16]=="true"){
+                  str+="<div><input type='checkbox' value='" + row[0] +"' deal_status='" + row[22] +"' name='active_#{params[:dtype]}_label_menu' class=' #{params[:dtype]}_chk_box_class chb-in-ll' onclick='other_chk_box()'></div><div class='cb'></div>";
+                  }
+                  else
+                  {
+                   str+="<div><input type='checkbox' value='" + row[0] +"' deal_status='" + row[22] +"' name='active_#{params[:dtype]}_label_menu' class=' other_chk_box_class chb-in-ll' onclick='other_chk_box()' disabled='disabled'></div>";  
+                  }
+                  
+                  if(row[21]=="true"){
+                    var dele = "<li><a rel='nofollow' data-method='delete' data-confirm='Do you want to delete the lead?' href='/leads/" + row[0] + "'><span class='glyphicon glyphicon-trash' style='margin-right:5px;'></span>Delete</a></li>"
+                  }
+                  else
+                  {
+                   var dele = ""
+                  }
+                  str+= "<br><ul class='dropdown-menu'><li class='arrow_top' style='left: 10px;'></li><li><a rel='tooltip' onclick=\"$('.error').html('');$('#task_form')[0].reset();$('#deal_title_task').val('" + row[1] + "');task_deal(' + row[0] + ');$('#hfield').val('"+ row[0] +"');$('#deal_title_task').val('"+ row[1] +"').prop('disabled', true);$('#email_err').html('');\" href='#taskModal' data-toggle='modal' data-id='" + row[0] + "'><span class='add_i_deal'></span>Add Task</a></li><li class='divider'></li><li><a onclick=\"$('#notable_id').val('" + row[0] + "');$('#notable_type').val('Deal');\" href='javascript:' data-toggle='modal' data-target='#noteModal'><span class='add_i_note'></span>Add Note</a></li><li class='divider'></li><li><a onclick=\"$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val('"+ row[8] +"');$('#mailer_id').val('" + row[0] + "');$('#mailer_type').val('Deal');$('#email_contact_id').val(" + row[14] + ");$('#email_contact_type').val('"+ row[18] +"');reset_email_err_msg();\" href='javascript:' data-toggle='modal' data-target='#SendEmailModal'><span class='glyphicon glyphicon-envelope' style='margin-right:5px;'></span>Send Email</a></li><li class='divider'></li><li><a href='/leads/"+ row[0]+"/edit'><span class='glyphicon glyphicon-edit' style='margin-right:5px;'></span>Edit</a></li> <li class='divider'></li><li><a href='javascript:' onclick=\"quick_edit('" + row[0] + "')\"><span class='quick-edit' style='margin-right:5px;' ></span>Quick Edit</a></li> \
+                  " + ((row[30] == "4" ) ? "" :("<li class='divider'></li>"+ dele +"<li class='divider'></li><li><a title='Move Lead' rel='popup'  onclick=\"$('.show_all').show();$('.deal_s_"+ row[22] +"').hide();$('#assigned_to_user').val('" + row[19] + "');$('#new_initr_id').val('" + row[20] + "');$('#new_assign_id').val('" + row[19] + "');move_deal('" + row[0] + "');reset_pop();\" href='#dealmoveModal' data-toggle='modal' data-id='" + row[0] + "' class='movedealincomepop'><span class='add_i_move'></span>Move Lead</a></li>") ) + "\
+                  </ul></div>";       
+                  return str
+              }
+       },
+       {aTargets: [1],
+       bSortable: true,
+       mRender: function(data, type, row ){
+          if(row[6] != ''){
+            if(row[6].length > 12)
+              var name = row[6].substring(0,10) + "..."
+            else
+              var name = row[6]
+          }
+          if(row[34] == ""){
+            str = "<div class='fl lead-profile-icon' style='background: "+row[32]+"' onclick='showLeadDetails($(this),"+row[0]+")'>"+row[6].charAt(0).toUpperCase()+"</div>";
+            var sty = "";
+          }else{
+            str = "<div class='contact-img-center' style='position:relative;' onclick='showLeadDetails($(this),"+row[0]+")'><img src='" + row[34] + "' style='height:40px;width:40px;left:3px;'></div>";
+            var sty = "margin: -45px 46px 0;position: absolute;";
+          }
+          str += "<div class='fl lead-cont-name' style='"+ sty +"'><div style='margin-right:5px;'><a href='/contact/"+row[33]+"' rel='tooltip' class='change-color-ll' title='"+row[6]+"' style='font-weight:bold' >"+name+"</a></div><div class='fl inbound-outbound'><div class='dropdown'><span class='dropdown-toggle highlight_user_label'  data-toggle='dropdown'><div class='fl user_label label_"+row[0]+"'>"+row[31]+"</div><div class='fr caret'></div><div class='cb'></div></span><ul class='dropdown-menu' style='top: 20px;'><li class='arrow_top' style='left: 10px;'></li><li ><a  href='javascript:void(0)' onclick='changeUserLabel("+row[0]+",\"Uncategorised\")'><span class='cwkp-sprite uncategorised'></span><span>Uncategorised</span></a></li><li class='divider'></li><li ><a  href='javascript:void(0)' onclick='changeUserLabel("+row[0]+",\"Inbound\")'><span class='cwkp-sprite inbound'></span><span>Inbound</span></a></li><li class='divider'></li><li ><a  href='javascript:void(0)' onclick='changeUserLabel("+row[0]+",\"Outbound\")'><span class='cwkp-sprite outbound'></span><span>Outbound</span></a></li></ul></div></div><div class='cb'></div></div>";
+          return str;
+          }},
+      {
+        aTargets: [2],
+        bSortable: true,
+        mRender: function(data, type, row ){
+              if(row[1] != ''){
+                if(row[1].length > 25)
+                  var lead_title = row[1].substring(0,22) + "..."
+                else
+                  var lead_title = row[1]
+                }
+              var str = ""
+              str+= "<div class='fl title_container' > \
+              <div id='deal_popup_menu' style='line-height:15px;'> \
+                 \
+                <a class='link_n change-lead-color-ll' href='/leads/" + row[0] + "' title='"+row[1]+"'> \
+                  "+lead_title+"\
+                </a> \
+              </div> \
+              <div class='fl grey_small lead-title-content'> \
+                <i class='icon-time' title='Last activity'></i> \
+                " + row[2] +"\
+                <i class='icon-user' title='Assigned to'></i> \
+                 &nbsp&nbsp&bull; Assigned to \
+                 <span> \
+                " + row[3] + " \
+                </span> \
+                <div> \
+              </div> \
+               <div> \
+                "+ display_opportunity(row[29],'#{params[:dtype]}')+"\
+              </div> \
+            </div> \
+              <div>"
+              if(row[16]=="true"){
+              str+="<div style='display: none;' class='actions dropdown fr'> \
+                <span style='cursor:pointer;text-decoration:none;color:darkOrange;' href='javascript:' data-toggle='dropdown' class='btn-sm btn-circle dropdown-toggle'> \
+                  <button type='button' class='btn btn-warning btn-xs'><span class='icon-cog icon-1x'></span></button>\
+                </span> \
+                <ul class='dropdown-menu'> \
+                  <li> \
+                    <a rel='tooltip' onclick=\"$('#task_form')[0].reset();task_deal(" + row[0] + ");$('#hfield').val('"+ row[0] +"');$('#deal_title').val('"+ row[1] +"').prop('disabled', true);$('#email_err').html('');\" href='#taskModal' data-toggle='modal' data-id='" + row[0] + "'>Add Task</a> \
+                  </li> \
+                  <li> \
+                    <a onclick=\"$('#notable_id').val(" + row[0] + ");$('#notable_type').val('Deal');\" href='javascript:' data-toggle='modal' data-target='#noteModal'>Add Note</a> \
+                  </li> \
+                  <li> \
+                    <a onclick=\"$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val(&quot;"+ row[8] +"&quot;);$('#mailer_id').val(" + row[0] + ");$('#mailer_type').val('Deal');$('#email_contact_id').val(" + row[14] + ");$('#email_contact_type').val('"+ row[18] +"');reset_email_err_msg();\" href='javascript:' data-toggle='modal' data-target='#SendEmailModal'>Send Email</a> \
+                  </li>\
+                  <li> \
+                    <a href='/leads/" + row[0] + "/edit'>Edit</a> \
+                  </li>"
+                  if(row[21] == "true"){
+                  str+="<li> \
+                    <a rel='nofollow' data-method='delete' data-confirm='Do you want to delete the lead?' href='/leads/" + row[0] + "'>Delete</a> \
+                  </li>";
+                  }
+                  str+="<li> \
+                    <a title='Move Lead' rel='popup'  onclick=\"$('.show_all').show();$('.deal_s_"+ row[22] +"').hide();$('#assigned_to_user').val(" + row[19] + ");$('#new_initr_id').val(" + row[20] + ");$('#new_assign_id').val(" + row[19] + ");move_deal(" + row[0] + ");reset_pop();\" href='#dealmoveModal' data-toggle='modal' data-id='" + row[0] + "' class='movedealincomepop'> \
+                      Move Lead \
+                    </a> \
+                  </li>\
+                  <!--<li> \
+                    <a title='Working On' data-method='post' data-confirm='Are you sure to move the deal to Working On?' href='/leads_woking_on/" + row[0] + "'>Working On</a>\
+                  </li> -->\
+                </ul> \
+              </div>";
+              }
+              str+="</div>\
+              <div class='cb'></div> \
+              <br> \
+            </div> \
+          </div><div class='cb'></div>"; 
+          return str;              
+            }
+      },
+         { 
+            aTargets: [3],
+            bSortable: false,
+            mRender: function(data, type, row ){
+             str=row[7];                  
+               // if(row[7] != ''){
+               //  str+= "<i class='icon-phone'></i>" +",&nbsp;"+ row[7];
+               // }      
+               if(row[8] != ''){
+                if(row[8].length > 15)
+                  var shrt_email = row[8].substring(0,15) + "..."
+                else
+                  var shrt_email = row[8]
+                str+= "<br/> <a onclick=\"$('.error').html('');$('#send-mail-popup').get(0).reset();$('#to').val('"+ row[8]+"');$('#mailer_id').val(" + row[0] + ");$('#mailer_type').val('Deal');$('#email_contact_id').val(" + row[14] + ");$('#email_contact_type').val('"+ row[18] +"');reset_email_err_msg();\" href='javascript:' class='link_n change-color-ll' data-toggle='modal' data-target='#SendEmailModal' rel='tooltip' title='"+row[8]+"'>"+shrt_email+"</a>";
+              }
+            return str    
+        }},
+     {aTargets: [5],
+       bSortable: false,
+       mRender: function(data, type, row ){
+         if(row[17] != ''){
+          return  "<a href='#' class='lead_amount' data-pk=" + row[17] + " style='font-size:12px;vertical-align: middle !important;'>$"+row[17]+"</a>";
+          }
+          else{return ""}
+          }},
+      
+      { aTargets: [8],
+        bSortable: true,
+        mRender: function(data, type, row ){
+        if(row[10][0] == "Hot")
+          s_deal = "hot_pri"
+        else if(row[10][0] == "Cold")
+          s_deal = "cold_pri"
+        else
+          s_deal = "warm_pri"
+
+        return "<div class='priority_container'><div class='fl'><a href='javascript:void(0)' class='change-color-ll' onclick='filterbypriority(\""+ row[10][1]+"\",\"#{params[:dtype]}\")'><span class='"+s_deal+" labelTaskType priority_label priority_lead_"+row[0]+"'>"+ row[10][0] + "</span></a></div><div class='fl dropdown'><span class='caret dropdown-toggle space-left black' style='cursor:pointer'  data-toggle='dropdown'></span><ul class='dropdown-menu' style=''><li class='arrow_top' style='left: 112px;'></li><li ><a  href='javascript:void(0)' onclick='changePriority("+row[0]+",\"Hot\",1)'><span class='cwkp-sprite hot'></span><span>Hot</span></a></li><li class='divider'></li><li ><a  href='javascript:void(0)' onclick='changePriority("+row[0]+",\"Warm\",2)'><span class='cwkp-sprite warm'></span><span>Warm</span></a></li><li class='divider'></li><li ><a  href='javascript:void(0)' onclick='changePriority("+row[0]+",\"Cold\",3)'><span class='cwkp-sprite cold'></span><span>Cold</span></a></li></ul></div><div class='cb'></div></div></div>";
+          
+      }},
+      {aTargets: [4],
+
+        bSortable: true,
+          mRender: function(data, type, row ){
+            //if((row[12] != '') && (row[13] != '')){
+            if(row[12] != ''){
+            //return "<div class='lead-location'>"+row[12]+"</div>" + ", " + row[13];
+            return "<div class='lead-location'>"+row[12]+"</div>";
+            }
+            //else if((row[11] == '') && (row[13] != '')){
+            //return row[13] + ", " + row[12];
+            //}
+            //else if((row[11] != '') && (row[13] == '')){
+            //return row[11] + ", " + row[12];
+            //}
+            else{
+            return "<div class='lead-location'>"+row[12]+"</div>";
+            }           
+            }},
+         {aTargets: [7],
+          bSortable: true,
+          mRender: function(data, type, row ){
+            
+            if('#{params[:dtype]}'=='all')
+            {
+              if(row[26] == ''){
+                var lead_stage = "NA"
+              }
+              else{
+                var lead_stage = row[26]
+              }
+              return "<div class='lead-stages-cntr'><span title='"+row[26]+"' class='lead-"+row[0]+"'>"+lead_stage+"</span><span class='dropdown'><span class='caret dropdown-toggle space-left black' style='cursor:pointer'  data-toggle='dropdown' onclick='getStages("+row[0]+")'></span><ul class='dropdown-menu select-stage-inlead-list' style='top:20px'><li class='arrow_top' style='left: 94px;'></li><div class='stages-list'></div></ul></span></div>";
+            }
+            else
+            {
+            return row[15];           
+            }
+           }
+          },
+         {aTargets: [6],
+          bSortable: false,
+          mRender: function(data, type, row ){
+          if(row[27] != ''){
+            var nxt_axn = row[27].length > 10 ? row[27].substring(0,7) + "..." : row[27]
+            return  "<div class='last_task_"+row[11]+"'><div class='next-action'><div class='label"+row[27]+" labelTaskType tasktype' title='"+row[27]+"'>"+nxt_axn+"</div></div><div class='cb'></div>"+ (row[27] == 'No-Action' ? "<a rel='tooltip' onclick=\"$('#clicked_button_ref').val('listmenu');$('#task_form')[0].reset();$('#deal_title_task').val('" + row[1] + "');task_deal(' + row[0] + ');$('#hfield').val('"+ row[0] +"');$('#deal_title_task').val('"+ row[1] +"').prop('disabled', true);$('#email_err').html('');\" href='#taskModal' class='change-color-ll' data-toggle='modal' data-id='" + row[0] + "'><span style='font-size: 10px;'>Schedule a Task</span></a>" : '') + "<div style='font-size: 10px;margin-top:5px;'>"+row[28]+"</div></div>";
+          }
+          else{return ""}
+          }},
+   
+    ],
+   fnPreDrawCallback: function() { $('#task_loader').show();},
+   fnDrawCallback: function() {
+              $('#task_loader').hide();
+              //$("#qualify_div_val").val(1);
+              document.cookie='deal_quarter=""'
+              document.cookie='deal_year=""'
+              $('a[rel="tooltip"],i,input:checkbox,button,div').powerTip({smartPlacement: true,fadeInTime: 100,fadeOutTime: 200});
+              //$('#badge_qualified').html(this.fnSettings().fnRecordsDisplay())
+              //$(".dealrow" ).hover(
+                //function() {
+                ///div_open=$(this).find("div.open")
+                //$(div_open).removeClass("open")
+                //$(this).find("div.dealspopupmenu").show();
+                //}, function() {
+                //$(this).find("div.dealspopupmenu").hide();
+              //});
+              //$('.dealrow').mouseover(function (e) {
+                //e.stopPropagation();
+               //$('.actions', this).show();
+              //});
+              $('.dealrow').mouseout(function (e) {
+                e.stopPropagation();
+                $('.actions', this).hide();
+              });    
+             
+          }
+      
+  
+  });
+  $("##{params[:dtype]}_tab").addClass("active");
+   //oTable_other.fnDraw();
+  });
+    function reset_other_badge_count(){
+      $("#show_filter_dealmsg").html('');
+      if((($("#individual_filter_present").val() == false || $("#individual_filter_present").val() == "false")) && $("##{params[:dtype]}").hasClass("active"))
+                    if(("#{cookies[:cre_by]}" == "true" ) || ("#{cookies[:asg_by]}" == "true" ) || ("#{cookies[:loc]}" == "true" ) || ("#{cookies[:priority]}" == "true" ) || ("#{cookies[:daterange]}" == "true" ) || ("#{cookies[:last_tch]}" == "true" ) || ("#{cookies[:dtrange_from]}" == "true" && "#{cookies[:dtrange_to]}" == "true") || ("#{cookies[:tag]}" != '') || ("#{cookies[:stage]}" == 'true') || ("#{cookies[:opportunity]}" != "") || ("#{cookies[:label_type]}" != "")){
+                    $("#show_filter_dealmsg").html('');
+                    }
+                    $(".badge_count").html("");
+                    $("#badge_#{params[:dtype]}").html("(0)");
+    }
+  function other_chk_box(){
+    var $cbs = $('input[name="active_#{params[:dtype]}_label_menu"]');
+    var total = 0;
+    $cbs.each(function() {
+        if (this.checked){
+            total ++;
+        }
+    });
+    if(total > 0){
+      $("##{params[:dtype]}Label").removeClass("label_arrow")
+      $("##{params[:dtype]}Label").addClass("label_arrow_active")
+      $("##{params[:dtype]}Dropdown").attr("data-toggle", "dropdown")
+    }else{
+      $("##{params[:dtype]}Label").addClass("label_arrow")
+      $("##{params[:dtype]}Label").removeClass("label_arrow_active")
+      $("##{params[:dtype]}Dropdown").removeAttr("data-toggle", "dropdown");
+      $(".DataTables_sort_wrapper").removeClass("open")
+    }
+  var checkboxes = document.getElementsByName('active_#{params[:dtype]}_label_menu');
+  var vals = "";
+  for (var i=0, n=checkboxes.length;i<n;i++) {
+   if (checkboxes[i].checked) 
+   {
+    vals += checkboxes[i].value+ ","
+   }
+  }
+  
+  $("#mass_deal_ids").val(vals);
+  $("#deal_ids_to_delete").val(vals);
+  };
+
+  function showLeadDetails(obj,lead_id){
+    
+    // When Lead details is hide, here display the div in lead listing
+    if ($(".lead-details").attr("id") == "lead-"+lead_id && $(".lead-details").is(":visible") == true ){
+      hideDetails();
+
+      
+    }  
+    //Hide the lead details in lead listing
+    else{
+      showDetails(obj,lead_id);
+    }
+  }
+
+
+
+  function showDetails(obj,lead_id){
+    $(".lead-page").css({"width":"100%", "padding-right":"280px"});
+    
+    $(".lead-page").addClass("fl");
+    $(".lead-details").show();
+    $(".lead-details").addClass("lead-details-in-ll");
+    $(".profile-details").css({"display":"block"});
+    $(".lead-cont-name").hide();
+    $(".ajax-lead-listing tr").removeClass("selected_row");
+    $(obj).closest("tr").addClass("selected_row");
+    $(".lead-profile-icon").addClass('center-pf-icon');
+    $(".contact-img-center").addClass('center-img-icon');
+    $(".priority_container .black").removeClass("space-left");
+    $(".title_container").css("padding-top","0");
+    $(".lead-details.lead-details-in-ll").html("<div class='loader-of-lead-details-in-ll'><img src='/assets/ajax-loader2.gif'/></div>");
+    $.ajax({
+      url: "/get_lead_details_in_lead_listing",
+      data: {id: lead_id},
+      success: function(data){ 
+        //alert("Success");
+        $(".lead-details.lead-details-in-ll").html(data);
+        $(".lead-details.lead-details-in-ll").attr("id","lead-"+lead_id);
+      },
+      error: function(data){
+        $("#task_loader,.fixed_loader").hide();
+        alert('Got an error while getting contact details.');
+      }
+    });
+  }
+
+  function hideDetails(){
+    $(".lead-details").hide();
+    $(".lead-page").css({"padding-right":"0"});
+    $(".lead-page").removeClass("fl");
+    $(".lead-details").removeClass("lead-details-in-ll");
+    $(".profile-details").css({"display":"none"});
+    $(".lead-cont-name").show();
+    $("tr").removeClass("selected_row");
+    $(".lead-profile-icon").removeClass('center-pf-icon');
+    $(".priority_container .black").addClass("space-left");
+    $(".title_container").css("padding-top","11px");
+    $(".ajax-lead-listing tr td:nth-child(5)").show();
+    $(".contact-img-center").removeClass('center-img-icon');
+  }
+
+
+  function changePriority(id,priority,priority_id){
+    $("#task_loader").show();
+    $.ajax({
+      url: "/change_priority",
+      data: {id: id,priority_id: priority_id},
+      success: function(data){ 
+        //alert("Success");
+        if(priority=="Hot")
+          pr_cl = "hot_pri"
+        else if(priority=="Warm")
+          pr_cl = "warm_pri"
+        else
+          pr_cl = "cold_pri"
+        $(".priority_label.priority_lead_"+id).removeClass("hot_pri warm_pri cold_pri").addClass(pr_cl);
+        $(".priority_label.priority_lead_"+id).html(data);
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        $("#task_loader").hide();
+        alert('Got an error while changing priority.');
+      }
+    });
+  }
+
+  function changeUserLabel(id, user_label_name){
+    $("#task_loader").show();
+    $.ajax({
+      url: "/change_user_label",
+      data: {id: id,user_label_name: user_label_name},
+      success: function(data){ 
+        //alert("Success");
+        $(".user_label.label_"+id).html(data);
+        $("#task_loader").hide();
+      },
+      error: function(data){
+        $("#task_loader").hide();
+        alert('Got an error while changing priority.');
+      }
+    });
+  }
+  
+  $.fn.editable.defaults.mode = 'inline';
+  $('#dataTableall .test a').editable({
+    type: 'text',
+    name: 'Amount',
+    title: 'Amount'
+  });

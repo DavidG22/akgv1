@@ -1,0 +1,103 @@
+%div
+  %p{style: "margin-bottom: 30px;"} Choose the leads & opportunities you want to move to the other side.
+  .dual-list.list-left.fl{style: "width:45%"}
+    %p.dual_list_desc Unassigned leads & opportunities
+    .well.text-right
+      .row
+        .col-md-10
+          .input-group
+            %span.input-group-addon.glyphicon.glyphicon-search
+            %input.form-control{:name => "SearchDualList", :placeholder => "search", :type => "text"}/
+        .col-md-2
+          .btn-group
+            %a.btn.btn-default.selector{:title => "select all"}
+              %i.glyphicon.glyphicon-unchecked
+      %ul.list-group
+        - not_assigned_deals = current_user.organization.deals.where("assigned_to IS NULL OR assigned_to != ?", @user.id)
+        - not_assigned_deals.each do |l|
+          %li.list-group-item{:id=>"#{l.id}"}
+            = l.title
+  .list-arrows.text-center.fl{style: "width:10%"}
+    %button.btn.btn-default.btn-sm.move-left{style:"margin-right: 0;"}
+      %span.glyphicon.glyphicon-chevron-left
+    %button.btn.btn-default.btn-sm.move-right{style:"margin-right: 0;"}
+      %span.glyphicon.glyphicon-chevron-right
+  .dual-list.list-right.fl{style: "width:45%"}
+    %p.dual_list_desc 
+
+      = "Lead assigned to #{@user.full_name.present? ? @user.full_name : @user.email}" 
+    .well
+      .row
+        .col-md-2
+          .btn-group
+            %a.btn.btn-default.selector{:title => "select all"}
+              %i.glyphicon.glyphicon-unchecked
+        .col-md-10
+          .input-group
+            %input.form-control{:name => "SearchDualList", :placeholder => "search", :type => "text"}/
+            %span.input-group-addon.glyphicon.glyphicon-search
+      %ul.list-group
+        - @user.all_assigned_deal.each do |l|
+          %li.list-group-item{:id=>"#{l.id}"}
+            = l.title
+  .cb
+.form-layout-footer{style: "margin-top: 15px;"}
+  = submit_tag "Save", :class=> "btn btn-info save_btn", :disable_with => "Please wait ...",:onclick=> "update_assign_lead('#{@user.id}')", disabled: true
+  %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+
+:javascript
+  $(function () {
+      $(".list-group-item").on('click', function () {
+          $(this).toggleClass('active');
+      });
+      $('.list-arrows button').click(function () {
+          var $button = $(this), actives = '';
+          if ($button.hasClass('move-left')) {
+              actives = $('.list-right ul li.active');              
+              actives.clone().appendTo('.list-left ul');
+              actives.remove();
+              left_deal_ids=[];
+              if($('.list-left ul li.active').length != "0"){
+                $(".save_btn").prop('disabled', false);
+              }
+              $('.list-left ul li.active').each(function() {
+                left_deal_ids.push($(this).attr("id"));
+              });
+              $('#hdn_unassign_deals').val(left_deal_ids);
+          } else if ($button.hasClass('move-right')) {
+              actives = $('.list-left ul li.active');
+              actives.clone().appendTo('.list-right ul');
+              actives.remove();
+              right_deal_ids=[];
+              if($('.list-right ul li.active').length != "0"){
+                $(".save_btn").prop('disabled', false);
+              }
+              $('.list-right ul li.active').each(function() {
+                right_deal_ids.push($(this).attr("id"));
+              });
+              $('#hdn_assign_deals').val(right_deal_ids);
+          }
+      });
+      $('.dual-list .selector').click(function () {
+          var $checkBox = $(this);
+          if (!$checkBox.hasClass('selected')) {
+              $checkBox.addClass('selected').closest('.well').find('ul li:not(.active)').addClass('active');
+              $checkBox.children('i').removeClass('glyphicon-unchecked').addClass('glyphicon-check');
+          } else {
+              $checkBox.removeClass('selected').closest('.well').find('ul li.active').removeClass('active');
+              $checkBox.children('i').removeClass('glyphicon-check').addClass('glyphicon-unchecked');
+          }
+      });
+      $('[name="SearchDualList"]').keyup(function (e) {
+          var code = e.keyCode || e.which;
+          if (code == '9') return;
+          if (code == '27') $(this).val(null);
+          var $rows = $(this).closest('.dual-list').find('.list-group li');
+          var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+          $rows.show().filter(function () {
+              var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+              return !~text.indexOf(val);
+          }).hide();
+      });
+
+  });

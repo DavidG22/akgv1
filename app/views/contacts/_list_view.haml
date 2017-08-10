@@ -1,0 +1,233 @@
+:css
+  #contactList_filter{
+    float: right;
+    margin: -3px 135px;
+    z-index: 10;
+  }
+  .nav-tabs > li > a{
+    color: #555;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+    cursor: default;
+  }
+  .pagination { margin-top: 0;font-size:12px }
+  .dataTables_info {font-size: 12px}
+#list_view
+  %div.header.fixed-in-app-header
+    .col-md-6
+    .fr
+      .fl
+        %span.import_contact.import-contact
+          Import Contact
+          %i.fa.fa-sort-desc.dropdown-toggle{"aria-hidden" => "true","data-toggle" => "dropdown"}
+          %ul.dropdown-menu{role: "menu",style:"left: 790px;top: 40px;"}
+            /%li
+            /  %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip", title: "Import Contact from Zoho CRM",href: "javascript:void(0)",:style=>"cursor: default;", onclick: "open_crm_modal('zoho_crm')"} Zoho CRM
+            /%li
+            /  %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip", title: "Import Contact from Sugar CRM",href: "javascript:void(0)",:style=>"cursor: default;", onclick: "open_crm_modal('sugar_crm')"} Sugar CRM
+            /%li
+            /  %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip", title: "Import Contact from FatFree CRM",href: "javascript:void(0)",:style=>"cursor: default;", onclick: "open_crm_modal('fatfree_crm')"} FatFree CRM
+            %li.arrow_top{style:"left:118px"}
+            %li
+              %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip", title: "Import Contact from other CRM",href: "javascript:void(0)",:style=>"cursor: default;", onclick: "open_crm_modal('other_crm')"} Other CRM
+            /%li
+            /  %a{href: "/contacts/gmail", title: "Import Contact from Gmail"}
+            /    Import Contact from Gmail
+      .fl  
+        %span.import_contact.import-contact
+          %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip", title: "Bulk Contact Upload",href: "javascript:void(0)",:style=>"cursor: default;color:#fff;cursor:pointer;", onclick: "open_crm_modal('bulk_contact')"}
+            Bulk Contact Upload
+      .fl  
+        %span  
+          %a#contacts_export_btn{href: contacts_path(format: "csv"), title: "Export Contact"}
+            %span.cwkp-sprite.bulk-lead-upload
+      .cb
+    .clearfix{style: "clear:both"}
+
+  %div.table-responsive
+    - con = Contact
+    %table.table.table-hover.table.white-table.display.borderless.ajax-contact-list{:cellspacing => "0", :width => "100%", id: "contactList",style: "box-shadow: 0 0 5px #aaa;margin-bottom: 20px;position: relative;top: -22px;", "data-source"=>contacts_url(format: 'json',params: {cuser: current_user.id})}
+      %thead{style: "border: 1px solid #ddd"}
+        %tr
+          %th{style: "display:none"}
+          %th{style: "width: 250px;"} Name
+          %th Email
+          %th Company
+          %th Opportunity
+          %th Country
+          %th Ph no.
+          %th Website
+      %tbody
+
+:javascript
+
+  $('#contactList').dataTable({
+    sPaginationType: "bootstrap",
+    bJQueryUI: true,
+    bProcessing: false,
+    bServerSide: true,
+    serverSide: true,
+    iDisplayLength : 20,
+    oLanguage: { 
+      "sSearch": "" ,
+      oPaginate: {
+        sPrevious: "Prev"
+      }
+    },
+    sAjaxSource: $('#contactList').data('source'),
+    aoColumnDefs: [
+      
+      { aTargets: [0],
+        bSortable: false,
+          mRender: function(data, type, row ){
+            return '';
+        },
+        bVisible: false
+      },
+      { aTargets: [1],
+
+        bSortable: true,
+          mRender: function(data, type, row ){
+          if(row[1] == "individual_contact"){
+            name = row[3]
+            sort_name = row[3].substr(0,15) + "..."
+            if(row[3].length >= 15){
+              if(row[11] == ""){
+                str = "<a href='contact/"+row[0]+"' title='"+row[3]+"'><span class='lead-profile-icon' style='background: " + row[9] + "'>"+row[2]+"</span></a>";
+                var sty = "";
+              }else{
+                str = "<div class='contact-img-center' style='position:relative;'><img src='" + row[11] + "' style='height:40px;width:40px;left:3px;'></div>";
+                var sty = "margin: -35px 46px 0;position: absolute;";
+              }
+              if(row[13]=="true"){
+                str += "<span class='cwkp-sprite bulk-csv' title='CSV uploaded'></span><span style='"+ sty +"'><a href='contact/"+row[0]+"' title='"+row[3]+"'>"+sort_name+"</a>";
+              }else{
+                str += "<span style='"+ sty +"'><a href='contact/"+row[0]+"' title='"+row[3]+"'>"+sort_name+"</a></span>";
+              }
+              return str;
+            }else{
+              if(row[11] == ""){
+                str = "<a href='contact/"+row[0]+"' title='"+row[3]+"'><span class='lead-profile-icon' style='background: " + row[9] + "'>"+row[2]+"</span></a>";
+                var sty = "";
+              }else{
+                str = "<div class='contact-img-center' style='position:relative;'><img src='" + row[11] + "' style='height:40px;width:40px;left:3px;'></div>";
+                var sty = "margin: -35px 46px 0;position: absolute;";
+              }
+              if(row[13]=="true"){
+                str += "<span class='cwkp-sprite bulk-csv' title='CSV uploaded'></span><span style='"+ sty +"'><a href='contact/"+row[0]+"' title='"+row[3]+"'>"+name+"</a></span>";
+              }else{
+                str += "<span style='"+ sty +"'><a href='contact/"+row[0]+"' title='"+row[3]+"'>"+name+"</a></span>";
+              }
+              return str;
+            }
+          }
+          else{
+            name = row[3]
+            sort_name = row[3].substr(0,20) + "..."
+            if(row[3].length > 20){
+              return "<a href='contact/"+row[0]+"?type=company' title='"+row[3]+"' ><span class='lead-profile-icon' style='background: " + row[9] + "'>"+row[2]+"</span><span>"+sort_name+"</a></span>";
+            }
+            else{
+              return "<a href='contact/"+row[0]+"?type=company' title='"+row[3]+"' ><span class='lead-profile-icon' style='background: " + row[9] + "'>"+row[2]+"</span><span class=''>"+name+"</a></span>";
+            }
+          }
+      }},
+      { aTargets: [2],
+        bSortable: true,
+          mRender: function(data, type, row ){
+            return "<a href='javascript:void(0)' class='change-color-ll' data-target = '#SendEmailModal' data-toggle = 'modal' rel='tooltip' onclick='$(\".error\").html(\"\");$(\"#send-mail-popup\").get(0).reset();$(\"#to\").val(\"" + row[4] + "\");$(\"#mailer_id\").val(\"" + row[0] + "\");$(\"#mailer_type\").val(\"" + row[10] + "\");$(\"#email_contact_id\").val(\"" + row[14] + "\");$(\"#email_contact_type\").val(\"" + row[10] + "\")'>"+row[4]+"</a>";
+      }},
+
+      { aTargets: [3],
+        bSortable: false,
+          mRender: function(data, type, row ){
+            if(row[5] == "NA"){
+              var cmp_link = row[5];
+            }else{
+              var cmp_link = "<a href='"+row[12]+"'>"+row[5]+"</a>";
+            }
+            return cmp_link;
+      }},
+      { aTargets: [4],
+        bSortable: false,
+          mRender: function(data, type, row ){ 
+          if(row[13]=="true"){
+            if(row[16]=="true"){
+              var opptunity_txt = "<a href='/leads/"+row[17]+"' target='_blank'>"+ row[15] +"</a>";
+            }else{
+              if(row[15]==""){
+                var opptunity_txt = "<a href='#' class='contact_opporunity' id='opportunity_"+row[14]+"' data-pk=" + row[14] + "></a>";
+              }else{
+                var opptunity_txt = "<a href='#' class='contact_opporunity' id='opportunity_"+row[14]+"' data-pk=" + row[14] + ">"+ row[15] +"</a><a href='#' value='"+row[14]+"' class='opportunity_lead' onclick='opportunity_lead("+row[14]+")'><span class='cwkp-sprite convert-lead' title='Convert to Lead'></span></a>";
+              }
+            }
+          }else{
+            var opptunity_txt = "";
+          }
+          return opptunity_txt;
+      }},
+      { aTargets: [5],
+        bSortable: false,
+          mRender: function(data, type, row ){
+            return row[6];
+      }},
+      { aTargets: [6],
+        bSortable: false,
+          mRender: function(data, type, row ){
+            return row[7];
+      }},
+      { aTargets: [7],
+        bSortable: false,
+          mRender: function(data, type, row ){
+            return row[8];
+      }}
+    ],
+    fnPreDrawCallback: function() { 
+      $('#task_loader,.fixed_loader').show(); 
+      $("#contactList_filter input").attr("placeholder", "Search...");
+    },
+    fnDrawCallback: function() {
+      $('#task_loader,.fixed_loader').hide();
+      var opportunity = "";
+      $('.contact_opporunity').editable({      
+      url: '/create_contact_opportunity' ,
+      mode: 'popup',
+      title: 'Enter Opportunity Name',
+      type: 'text',
+      placement: 'right',
+      data: {custom: 'text'}, 
+      validate: function(value) {
+        if($.trim(value) == '')
+          return 'Please enter opportunity name';
+        else
+          opportunity = $.trim(value);
+      },
+      success: function(data) {
+        $(this).closest("td").html("<a href='#' class='contact_opporunity' id='opportunity_"+$(this).attr('data-pk')+"' data-pk=" + $(this).attr('data-pk') + ">"+ opportunity +"</a><a href='#' onclick='opportunity_lead("+$(this).attr('data-pk')+")'><span class='cwkp-sprite convert-lead' title='Convert to Lead'></span></a>")
+      },
+      error: function(data) {
+      }
+    });
+    }
+      
+  
+  });
+  
+
+  function opportunity_lead(id){
+    $.ajax({
+      url: 'opportunity_to_lead/'+id,
+        type: 'POST',
+        success: function(res) {
+          
+        },
+        complete: function(res) {          
+          data = $.parseJSON(res.responseText)
+          $("#opportunity_"+data["message"].contact_id).closest("td").html("<a href='/leads/"+data["message"].deal_id+"' target='_blank'>"+ data["message"].opportunity +"</a>")
+        },
+        error: function(res) {
+          //alert(2)
+        }
+    });
+  };

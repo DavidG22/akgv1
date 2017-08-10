@@ -1,0 +1,100 @@
+.container
+  .row
+    .col-md-12.con-box1
+      .col-md-8.show_del_icon
+        %div
+          / Trigger the modal with a button
+          %button.btn.btn-info.btn-lg{"data-target" => "#reminderModal", "data-toggle" => "modal", :type => "button"} Add Reminder
+          = render :partial => "reminders_calendar"
+      .col-md-4.custom-div-css{:style=>"margin-top: 50px;overflow-y: auto;"}
+        %b
+          Upcoming Reminders
+        %br
+        %br
+        = render :partial => "upcoming_reminders"
+      .cb
+  .row
+    .col-md-8
+      #get_today_reminders.custom-div-css
+        %b
+          = Time.zone.now.strftime("%b %d %Y")
+          Reminders
+        %br
+        %br
+        = render :partial => "today_reminders"
+
+/ Reminder Modal
+#reminderModal.modal.fade{:role => "dialog", :style => "overflow-y: scroll !important;"}
+  .modal-dialog
+    / Modal content
+    .modal-content
+      .modal-header
+        %button.close{"data-dismiss" => "modal", :type => "button"} ×
+        %h4.modal-title Add Reminder
+      - @reminder = Reminder.new
+      = form_for(@reminder, :url => reminders_path, :remote => true, :html=>{:class => "form",:method=> "Post",:id=> "reminder_form"}) do |f|
+        .modal-body
+          = render "reminder_form", :f => f
+        .modal-footer
+          =f.submit "Save", :class=> "btn btn-primary", :disable_with => "Please wait ...",:onclick=> "return validate_email('task_mail_to')"
+          %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+:javascript
+  var newdate = new Date();
+  $('#reminder_reminder_date').datetimepicker(
+    {
+      minDate: newdate, 
+      useCurrent: false,  
+      format: 'MM-DD-YYYY HH:mm'
+    }
+  )
+
+  $('input.reminder_types').on('change', function() {
+      $('input.reminder_types').not(this).prop('checked', false);
+      var reminder_type_id = $('input.reminder_types:checked').val();
+      $("#reminder_reminder_type_id").val(reminder_type_id);
+  });
+
+  $('.reminder_deal_typeahead').typeahead([{
+    name: 'deals',
+    valueKey: 'deal_name',
+    remote: {url: '/get_leads/'+ #{current_user.organization.id}+ '?q=%QUERY'},
+    template: '<p><strong>{{deal_name}}</strong></p>',
+    engine: Hogan
+    }]).on('typeahead:selected',onSelectedTask).on('typeahead:opened',onOpened);
+   
+  function onSelectedTask($e,datum){
+    var dfield = document.getElementById('dfield');
+    $('#lead').val(datum.id)
+    dfield.value = datum.id;    
+  }
+
+  function onOpened($e){
+    $("#dfield").val("")
+  }
+   
+  function onClosed($e){
+    if($("#dfield").val() == ""){
+      $("#reminder_lead").val("");
+    }
+  }
+
+  $('#reminder_form').bind('ajax:complete', function(evt, data, status, xhr){
+    $('#task_loader').hide();
+    $('#reminderModal').modal('hide');
+    window.location.reload();
+  });
+
+  $('#reminder_form').bind('ajax:before', function(evt, data, status, xhr){
+    $('#task_loader').show();
+  });
+
+  function change_reminder_days()
+  {
+      period_val=$("#reminder_reminder_date").val();
+      date=period_val.split(" ")[0];
+      time = period_val.split(" ")[1];
+      year = date.split("-")[2]
+      month = date.split("-")[0]
+      day = date.split("-")[1]
+      $("#reminder_reminder_date").val(year+"-"+month+"-"+day + " " +time);      
+  }

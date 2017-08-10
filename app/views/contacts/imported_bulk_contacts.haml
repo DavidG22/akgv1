@@ -1,0 +1,53 @@
+-@temp_table = TempTable.where(user_id: current_user.id).paginate(:page => params[:page], :per_page => 10)
+.container{style:""}
+  %h1{style: "text-align:center"}
+    Imported Contacts
+  .row{style:"background:#fff;border-radius: 5px;"}
+    .col-md-12{style: "padding: 20px;"}
+      %table.table.table-hover{style: "border: 1px solid #ddd;"}
+        %thead{style: "background-color: rgb(237, 238, 240);"}
+          %tr
+            %th
+              Name
+            %th 
+              Email
+            %th 
+              Phone
+            %th 
+              Company Name
+            %th 
+              Web Site
+            %th
+              Address
+            %th 
+              Reference Site
+            %th 
+              Note              
+          %tbody
+            -@temp_table.each do |temp_table|
+              %tr
+                %td
+                  = temp_table.name
+                %td
+                  = temp_table.email
+                %td
+                  = temp_table.phone
+                %td
+                  = temp_table.company_name
+                %td
+                  = temp_table.web_site
+                %td
+                  = temp_table.address
+                %td
+                  = temp_table.ref_site
+                %td
+                  = truncate(temp_table.note, :length => 50, :omission => "...")
+      - if !@temp_table.blank?
+        .proceed_to_lead.fl
+          %a.btn.btn-primary{href: "/proceed_to_bulk_contacts_lead"}
+            Proceed &raquo
+      - else
+        %h4{style: "color:red;text-align: center;"}
+          No data Available.
+      .digg_pagination.fr
+        = will_paginate @temp_table, :container => false

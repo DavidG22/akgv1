@@ -1,0 +1,123 @@
+.left_col.scroll-view
+  #sidebar-menu.main_menu_side.hidden-print.main_menu
+  .menu_section{:style => "max-height: 570px; overflow-y: auto;"}
+    %ul.nav.side-menu
+      %li{style: "background: #FAFAFA;border-left: none;min-height:60px"}
+        %a{:href => "javascript:void(0)", onclick: "showProfileList()",style: "padding: 14px 13px;"}
+          .fl.user-profile
+            - display_name = current_user.full_name.present? ? current_user.full_name : current_user.organization.name
+
+            - if current_user.image.present? && current_user.image.image.present?
+              .fl.userImage
+                = image_tag current_user.image.image.url(:thumb), :alt=>""  
+            -else
+              %div.profileImage
+                =display_name.chars.first
+          .fl.menu_name.top-pf.ml-3{title: "#{display_name}"}
+            =display_name.truncate(12)
+          .fr.menu_name.top-pf
+            .pf-arrow
+              >
+          .cb
+        .profile_menu_list
+          %div
+            =link_to "/profile" do
+              %i.fa.fa-user{"aria-hidden" => "true"}
+              My Profile
+          %div
+            = link_to destroy_user_session_path, :method => :delete,:id=>"logout", :onclick=>"return track_logout();" do
+              %i.fa.fa-sign-out
+              Log Out
+
+      %li#home
+        %a{:href => "/dashboard"}
+          %span.menu_icon{title: "Dashboard"}
+            %span.cwkp-sprite.d-bord
+          %span.menu_name.ml-3
+            Dashboard
+      %li#leads.active_leads
+        %a{:href => "/leads"}
+          .fl.link_name
+            %span.menu_icon
+              %span.cwkp-sprite.lds{title: "Leads"}
+            %span.menu_name
+              Leads
+          .fr.count-box.lead-count-box
+            = @current_organization.deals.present? ? @current_organization.deals.where(is_active: true).count : "0"
+          .cb
+      %li#leads_kanban_view
+        %a{:href => "/leads/kanban"}
+          %span.menu_icon
+            %span.kanban.cwkp-sprite{title: "Kanban View"}
+            %span.menu_name
+              Kanban View
+            
+      %li#tasks
+        %a{:href => "/tasks"}
+          .fl.link_name  
+            %span.menu_icon
+              %span.cwkp-sprite.task{title: "Tasks"}
+            %span.menu_name
+              Tasks
+          .fr.count-box.task-count-box
+            = @current_organization.tasks.count.present? ? @current_organization.tasks.count : "0"
+          .cb
+      %li#contacts
+        %a{:href => "/contacts"}
+          .fl.link_name  
+            %span.menu_icon  
+              %span.cwkp-sprite.contact{title: "Contacts"}
+            %span.menu_name
+              Contacts
+          .fr.count-box.contact-count-box
+            = @current_organization.individual_contacts.count.present? ? @current_organization.individual_contacts.count : "0" #+ @current_organization.company_contacts.count
+          .cb
+      - if @current_user.is_admin?  
+        %li#users
+          %a{:href => users_path}
+            %span.menu_icon  
+              %span.cwkp-sprite.lds.users{title: "Users"}
+            %span.menu_name
+              Users
+        %li#daily_update
+          %a{:href => "/daily_updates"}
+            %span.menu_icon  
+              %span.cwkp-sprite.contact.daily_update{title: "Daily Updates"}
+            %span.menu_name
+              Daily Updates
+      / %li#reminders
+      /  %a{:href => reminders_path}
+      /    %span.menu_icon  
+      /      %span.cwkp-sprite.reminder
+      /    %span.menu_name
+      /      Reminders
+      / %li#gettingStarted
+      /   %a{:href => "/getting_started"}
+      /     %span.menu_icon  
+      /       %span.cwkp-sprite.g-start
+      /     %span.menu_name
+:javascript
+  function showProfileList(){
+    $(".profile_menu_list").slideToggle( "fast", function() {
+      if($(".profile_menu_list").is(":hidden"))
+        {
+          $(".pf-arrow").css({
+          '-moz-transform':'rotate(0deg)',
+          '-webkit-transform':'rotate(0deg)',
+          '-o-transform':'rotate(0deg)',
+          '-ms-transform':'rotate(0deg)',
+          'transform':'rotate(0deg)'
+        });
+        }
+      else{
+        $(".pf-arrow").css({
+          '-moz-transform':'rotate(88deg)',
+          '-webkit-transform':'rotate(88deg)',
+          '-o-transform':'rotate(88deg)',
+          '-ms-transform':'rotate(88deg)',
+          'transform':'rotate(88deg)'
+        });
+      }
+    });
+      
+  }

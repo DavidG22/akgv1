@@ -1,0 +1,30 @@
+%li.arrow_right{style: "left: 124px;top: 0;"}
+.all_lead  
+  - @deals.each do |lead|
+    %li{onclick: "filterFilesByLead(#{lead.id})", title: "#{lead.title}"}
+      %span
+        - if lead.title.size > 10
+          = lead.title[0..10] + "..."
+        - else
+          = lead.title
+    %li.divider
+
+:javascript
+  function filterFilesByLead(id){
+    $("#task_loader").show();
+    $.ajax({
+    url: '/filter_files_by_lead',
+      type: 'POST',
+      data: {id: id},
+      success: function(res) {
+        $(".files_wrapper").html(res);
+        $(".show_file_filter").show();
+        $(".show_file_filter .filter_name").html($("#lead_title").val());
+        $("#task_loader").hide();
+      },
+      error: function(res) {
+        alert("Error Found.!!!");
+        $("#task_loader").hide();
+      }
+    });
+  }

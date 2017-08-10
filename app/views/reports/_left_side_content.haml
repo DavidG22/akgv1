@@ -1,0 +1,60 @@
+.con-box1
+  .col-md-12
+    .report_container.leads_report.report_box
+      %h3
+        %span.cwkp-sprite.lds.lead-icon
+        Leads
+        %span.lead-count-no
+          = @current_organization.deals.count
+      %div    
+        %br
+        %div
+          %ul
+            %li
+              %strong Hot :
+              %span.cwkp-sprite.hot
+              %span.hot_lead_count.lead_count_txt
+                = @current_organization.deals.where(priority_type_id: 1).count
+            %li
+              %strong Warm :
+              %span.cwkp-sprite.warm
+              %span.warm_lead_count.lead_count_txt
+                = @current_organization.deals.where(priority_type_id: 2).count
+            %li
+              %strong Cold :
+              %span.cwkp-sprite.cold
+              %span.cold_lead_count.lead_count_txt
+              = @current_organization.deals.where(priority_type_id: 3).count
+            .cb
+    %div.report_box.tcau_section
+      %ul  
+        %li
+          .report_container.tasks_report
+            %h3
+              Tasks
+            .report_count_box.tasks_count
+              %h2
+                =@current_organization.tasks.count 
+        %li 
+          .report_container.contacts_report
+            %h3
+              Contacts
+            .report_count_box.contacts_count
+              %h2
+                =@current_organization.individual_contacts.count + @current_organization.company_contacts.count
+        %li 
+          .report_container.activities_report
+            %h3
+              Activities
+            .report_count_box.activities_count
+              %h2
+                =@current_organization.activities.count
+        %li
+          .report_container.users_report
+            %h3
+              Users
+            .report_count_box.users_count
+              %h2
+                =@current_organization.users.count
+        .cb
+  .cb

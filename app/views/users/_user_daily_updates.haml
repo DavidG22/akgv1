@@ -1,0 +1,125 @@
+= form_for @daily_update, as: :daily_updates, url: save_daily_updates_path, method: :post, html: { class: "daily_update_form", id: "daily_update_form" } do |f|
+  = hidden_field_tag "hdn_deal_id"
+  .lbl-blk.user
+    %label Users Involved
+    .all
+      = hidden_field_tag "hdn_user_ids"
+      - if @users.present? && @users.count > 1
+        = check_box_tag "usercheckAll",'usercheckAll'
+        All
+    %div
+      %span
+        -if @users.present?
+          - @users.each do |u|
+            = check_box_tag 'daily_updates_user_ids', u.id, f.object.present? && f.object.user_ids.present? && f.object.user_ids.include?(u.id.to_s)
+            = u.first_name.present? ? u.first_name : u.email
+  .lbl-blk
+    %label Set TimeZone
+    = f.time_zone_select(:time_zone, ActiveSupport::TimeZone.us_zones)
+  .lbl-blk.alert-time.user
+    %label Set Alert Time
+    .col-md-6.pull-left
+      %label Hour(s)
+    .col-md-6.pull-right
+      %label Minute(s)
+    = f.time_select 'alert_time', {minute_step: 5}
+    %span{class:"format_txt"}
+      %strong
+        Note:
+      24 hours format
+    .clearfix
+  
+  .lbl-blk.user
+    %label Frequency
+    .all
+      = hidden_field_tag "hdn_frequency"          
+      = check_box_tag "checkAll",'checkAll'
+      All
+    %div
+      %span
+        - Date::ABBR_DAYNAMES.each do |d|
+          = check_box_tag "frequency",  d, f.object.present? && f.object.frequency.present? && f.object.frequency.include?(d)
+          = d
+    .clearfix
+  /%a.cancel-catchup{:href => "javascript:void(0)"} Cancle-daily catchup
+  .update-cancel-btn
+    %a.btn_hover_link.cmn_size{:href => "/daily_updates"} Cancel
+    = f.submit @daily_update.new_record? ? "Save" : "Update", class: "update"
+  /%tr.hide_remains
+  /  %td.btn_align
+  /    #cancel_daily_update{:style => "display: none;"}
+  /      %a{:href => "javascript:jsVoid();", :onclick => "cancel_daily_update();", :style => "color: red;text-decoration: underline;"} Cancel Daily Catch-Up
+  /    .fr
+  /      #subprof1
+  /        %span.fl.or_cancel.btn-margin
+  /          %a.btn_hover_link.cmn_size{:href => "/daily_updates"} Cancel
+  /        %span.fl
+  /          = f.submit "Save"
+
+:javascript
+  
+  var countChecked = function() {
+    var total = [];
+    var n = $( "input:checked" ).not('#checkAll').length;
+    
+    $( "input[type=checkbox][name=frequency]:checked" ).not('#checkAll').each(function(){
+      total.push($(this).attr("value"));
+    });
+    $( "#hdn_frequency" ).val(total);
+
+    if($(this).attr("value") != "checkAll"){
+      $("#checkAll").removeAttr("checked");
+    }
+
+    if($( "input[type=checkbox][name=frequency]:checked" ).not('#checkAll').length == $( "input[type=checkbox][name=frequency]" ).not('#checkAll').length){
+      $("#checkAll").prop("checked","checked");
+    }     
+  };
+  //countChecked();
+  var total = [];
+  $("input[type=checkbox][name=frequency]:checked").each(function () {
+      total.push($(this).attr("value"));
+  });
+  $( "#hdn_frequency" ).val(total);
+   
+  $( "input[type=checkbox][name=frequency]" ).on( "click", countChecked );
+  $("#checkAll").click(function () {
+     $('input[type=checkbox][name=frequency]').not(this).prop('checked', this.checked);
+     $("input[type=checkbox][name=frequency]:checked").each(function () {
+          total.push($(this).attr("value"));
+      });
+      $( "#hdn_frequency" ).val(total);
+  });
+
+  /* User selection*/
+  var usercountChecked = function() {
+    var usrtotal = [];
+    
+    $( "input[type=checkbox][name=daily_updates_user_ids]:checked" ).not('#usercheckAll').each(function(){
+      usrtotal.push($(this).attr("value"));
+    });
+    $( "#hdn_user_ids" ).val(usrtotal);
+    if($(this).attr("value") != "usercheckAll"){
+      $("#usercheckAll").removeAttr("checked");
+    }
+
+    if($( "input[type=checkbox][name=daily_updates_user_ids]:checked" ).not('#usercheckAll').length == $( "input[type=checkbox][name=daily_updates_user_ids]" ).not('#usercheckAll').length){
+      $("#usercheckAll").prop("checked","checked");
+    }     
+  };
+   
+  $( "input[type=checkbox][name=daily_updates_user_ids]" ).on( "click", usercountChecked );
+
+  var usrtotal = [];
+  $("input[type=checkbox][name=daily_updates_user_ids]:checked").each(function () {
+      usrtotal.push($(this).attr("value"));
+  });
+  $( "#hdn_user_ids" ).val(usrtotal);
+
+  $("#usercheckAll").click(function () {
+     $('input[type=checkbox][name=daily_updates_user_ids]').not(this).prop('checked', this.checked);
+     $("input[type=checkbox][name=daily_updates_user_ids]:checked").each(function () {
+          usrtotal.push($(this).attr("value"));
+      });
+      $( "#hdn_user_ids" ).val(usrtotal);
+  });

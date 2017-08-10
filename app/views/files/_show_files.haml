@@ -1,0 +1,97 @@
+/ Hidden fields are taken to display name after applying filter
+- if @deal.present?
+  =hidden_field_tag "lead_title", @deal.title
+- if @user.present?
+  =hidden_field_tag "user", @user.full_name.present? ? @user.full_name : @user.email
+.files_content_block
+  .files_page
+    .files_top_ttl
+      %table.table.table-striped.mrg0
+        %tbody.file_header
+          %tr
+            %td.fileno_width # 
+            %td.filelead_width Opportunity
+            %td.filename_width File Name 
+            %td.filetype_width File Type 
+            %td.filenote_width Note
+            %td.fileuploaded_width Uploaded By 
+            %td.filedate_width Date  
+            %td.filesize_width File Size  
+            %td.filedownload_width
+    - match = ""
+    - if @note_attachments.present?
+      - @note_dates = @note_attachments.group_by{|n| n.created_at.beginning_of_day}
+      - @note_dates.each do |dt, note_attachments|
+        - if dt
+          - unless match == dt.strftime("%b %d, %Y")
+            - today = Time.zone.now.strftime('%Y-%m-%d')
+            - yesterday = (Time.zone.now - (24 * 60 * 60)).strftime('%Y-%m-%d')
+            - day_before_yesterday = (Time.zone.now - (48 * 60 * 60)).strftime('%Y-%m-%d')
+            
+            .file_dt{:id => "activityHead"}
+              #tod
+                %b  
+                  - if (Date.today.to_s == DateTime.parse(dt.to_s).strftime('%Y-%m-%d').to_s)
+                    Today
+                  - else
+                    - if (yesterday.to_s == DateTime.parse(dt.to_s).strftime('%Y-%m-%d').to_s)
+                      Yesterday
+                    - else
+                      - if dt.strftime("%Y").to_s == Time.zone.now.year.to_s
+                        = dt.strftime("%b %d")
+                      - else
+                        = dt.strftime("%b %d, %Y")
+              - match = dt.strftime("%b %d, %Y")
+
+            %table.table.table-striped.table-hover.file_listing
+              %tbody
+                - sl_no = 0
+                -note_attachments.each do |note_attachment,i|
+                  %tr
+                    %td.fileno_width
+                      = sl_no = sl_no + 1
+                    %td.filelead_width
+                      - if note_attachment.note.notable_type == "Deal" || note_attachment.note.notable_type == "DealMove"
+                        %span{title: "#{Deal.find(note_attachment.note.notable_id).title}"}  
+                          = Deal.find(note_attachment.note.notable_id).title.truncate(20)
+                    %td.filename_width
+                      %span{title: "#{note_attachment.attachment_file_name}"}
+                        = note_attachment.attachment_file_name.present? ? note_attachment.attachment_file_name.size > 20 ? "#{note_attachment.attachment_file_name[0..20]}..." : note_attachment.attachment_file_name : ""
+                    %td.filetype_width
+                      - file_type = note_attachment.attachment_content_type.present? ? note_attachment.attachment_content_type.split("/").last : "NA"
+                      - if file_type.downcase == "doc" || file_type.downcase == "docx"
+                        - file_title = "Document"
+                      - elsif file_type.downcase == "zip"
+                        - file_title = "ZIP File"
+                      - elsif file_type.downcase == "xls" || file_type.downcase == "csv"
+                        - file_title = "Excel Sheet"
+                      - elsif file_type.downcase == "exe"
+                        - file_title = "Application"
+                      - elsif file_type.downcase == "txt"
+                        - file_title = "Text"  
+                      - elsif file_type.downcase == "png" || file_type.downcase == "jpg" || file_type.downcase == "jpeg"
+                        - file_title = "Image"
+                      - else
+                        - file_title = file_type
+                        - file_type = "other"
+                      - if note_attachment.attachment_file_name.present?
+                        %a{href: note_attachment.attachment.url, target: "_blank"}  
+                          %span.cwkp-sprite{class: "file_#{file_type.downcase}", title: file_title}
+                    %td.filenote_width
+                      %span{title: note_attachment.note.notes}
+                        = note_attachment.note.notes.truncate(20)
+                    %td.fileuploaded_width
+                      - user = User.find_by_id(note_attachment.note.created_by)
+                      = user.present? ? (user.full_name.present? ? user.full_name : user.email.split("@")[0]) : ""
+                    %td.filedate_width
+                      = note_attachment.created_at.strftime("%b %d, %a")
+                    %td.filesize_width
+                      = note_attachment.attachment_file_size.present? ? "#{note_attachment.attachment_file_size.to_i/1024}" + " KB" : ""
+                    %td.filedownload_width
+                      - if note_attachment.attachment_file_name.present?
+                        %a{href: note_attachment.attachment.url, title: "Download", target: "_blank"}
+                          %i.fa.fa-download{"aria-hidden" => "true"}
+
+    - else
+      %div.text-center
+        No Files Found

@@ -1,0 +1,186 @@
+:css
+  .cms-file-input input[type="file"] {
+    position: fixed;
+    z-index: 2;
+    opacity: 0;
+    margin-top: 26px;
+    filter: alpha(opacity=0);
+  }
+  .row{
+    margin-top: 3px;
+  }
+  .file_hid_block{
+    height:90px;
+    position: absolute !important;
+    top: -26px;
+    vertical-align: middle;
+    width:85px;
+    cursor:pointer;
+  }
+  .file_upld{
+    display:table-cell;
+    background:#ffffff;
+    border-radius:1px;
+    text-align:center;
+    border: 1px solid #e9e9e9;
+    vertical-align: middle;
+    padding:3px;
+    width:90px;
+    height:90px;
+  } 
+  .click_img{
+    background:#000000;
+    color: #FFFFFF;
+    font-size: 12px;
+    opacity: 0.5;
+    position: relative;
+    text-align: center;
+    top: -18px;
+    width:90px;
+  }
+  .mt10{margin-top:6px;margin-right:0px;}
+  .cstm-material-modal .form-group .control-label.control-lbl-add-txt {left:0 !important;}
+= form_for(@contact, url: contact_path(@contact), :html=>{:class => "form",:method=>"put",:id=>"new_contact"}) do |f|    
+  =f.hidden_field :organization_id, value: current_user.organization_id.to_s
+  /=f.hidden_field :created_by, value: current_user.id.to_s
+  .container
+    .col-md-12.p0
+      %div
+        .col-md-12.p0
+          .col-md-6
+            .form-group
+              =f.text_field :first_name,class: "inp_txt", :onkeyup=>"return onlycharacters(event)",:onkeydown=>"return onlycharacters(event)", "data-provide"=> "typeahead" , :autocomplete=>"off", :required => true,:value=>@contact.first_name,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} First name
+              %i.bar
+          .col-md-6
+            .form-group
+              =f.text_field :last_name,class: "inp_txt", :onkeyup=>"return onlycharacters(event)",:onkeydown=>"return onlycharacters(event)", "data-provide"=> "typeahead" , :autocomplete=>"off",:value=>@contact.last_name,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Last Name
+              %i.bar
+          .cb
+          .col-md-6
+            .form-group
+              =text_field_tag :title,"",:value=>@deal.title,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))",required: true
+              %label.control-label.control-lbl-add-txt{:for => "input"} Opportunity
+              %i.bar
+              =hidden_field_tag "deal_id", @deal.id
+            .cb
+          .col-md-6
+            .form-group
+              =f.text_field :name,:class=>"custom-frm-inner company_name_typeahead",:value=>(@contact.company_contact.name if @contact.company_contact.present?),:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))",required: true      
+              %label.control-label.control-lbl-add-txt{:for => "input"} Company name
+              %i.bar
+              = hidden_field_tag "company_id", "#{@contact.company_contact.id if @contact.company_contact.present?}"
+          .cb
+          .col-md-6
+            .form-group
+              =text_field_tag :amount,"", :required => true,:value=>@deal.amount,:onkeydown=>"return numbersonly(event)"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Amount
+              %i.bar
+              //=f.hidden_field :extension,:value=>phone_ext
+          .col-md-6
+            .form-group
+              - @cn = CompanyStrength.all
+              - @cn.last.range = "1000 & more"
+              = select_tag 'company_strength', options_from_collection_for_select(@cn, 'id', 'range',selected: @contact.company_contact.present? && @contact.company_contact.company_strength.present? ? @contact.company_contact.company_strength.id : ""), {:prompt => '- Select your company size -'}
+              %label.control-label.control-lbl-add-txt{:for => "select"} - Select your company size -
+              %i.bar
+          .cb
+          .col-md-6
+            .form-group
+              =f.text_field :email, :required => true,:value=>@contact.email,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Email
+              %i.bar
+              //=f.hidden_field :extension,:value=>phone_ext
+          .col-md-6
+            .form-group
+              =f.text_field :work_phone,:class=>"bfh-phone",:type=>"text", "data-format"=>" (ddd) ddd-dddd",:value => @contact.phones.present? ? @contact.phones.by_phone_type("work").first.phone_no : "",:onkeydown=>"return numbersonly(event)"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Phone
+              %i.bar
+          .cb
+          .col-md-6
+            .form-group
+              =f.text_field :facebook_url,:value=>@contact.facebook_url,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Facebook
+              %i.bar
+          .col-md-6
+            .form-group
+              =f.text_field :twitter_url,:value=>@contact.twitter_url,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Twitter
+              %i.bar
+          .cb
+          .col-md-6
+            /.col-md-3.p0.grey_act.mt10 Instant Messenger:
+            .form-group
+              =f.text_field :linkedin_url,:value=>@contact.linkedin_url,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Linkedin
+              %i.bar
+          .col-md-6
+            .form-group
+              =f.text_field :messanger_id,:autocomplete=>"off",:value=>@contact.messanger_id,:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Skype ID
+              %i.bar
+          .cb
+          .col-md-6
+            .form-group
+              =f.select :country_id, Country.find(:all).collect {|c| [ c.name, c.id ]}, {:include_blank => '- Country -',:selected=>(@contact.country.present?) ? @contact.country.id  : "" }, :required => true, :onchange => "prefill_extension(this.value,'extension_for_contact','individual_contact_extension');prefill_extension(this.value,'extension_for_contact1','company_contact_extension');"
+              %label.control-label.control-lbl-add-txt{:for => "select"} - Country -
+              %i.bar
+          .col-md-6
+            .form-group
+              =text_field_tag :industry,"",:autocomplete=>"off",:value=>@deal.deal_industry.present? ? @deal.deal_industry.industry.name : "",:onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))"
+              %label.control-label.control-lbl-add-txt{:for => "input"} Industry
+              %i.bar
+          .cb
+        .cb
+        .modal-footer
+          .navbar-left
+            .col-md-12
+              %button.btn.btn-primary.btn-success.navbar-left{type: "submit", "data-disable-with" => "Saving...", onclick: "return chk_validation('contact')"} Update
+              %a{href:"#", "aria-hidden" => "true","data-dismiss" => "modal"}
+                %span.c_links Cancel
+
+:javascript
+  function readURL(input) {
+         if (input.files && input.files[0]) {
+             var reader = new FileReader();
+             reader.onload = function(e) {
+                 $('#previewHolder').attr('src', e.target.result);
+             }
+
+             reader.readAsDataURL(input.files[0]);
+         }
+     }
+     $("#individual_contact_contact_image").change(function() {
+         readURL(this);
+     });
+     $("#company_contact_contact_image").change(function() {
+             readURL(this);
+         });
+  $('.company_name_typeahead').typeahead([{
+    name: 'company_contacts',
+    valueKey: 'company_name',
+    remote: {url: '/get_companies/'+ #{current_user.organization.id if current_user.organization.present?}+ '?q=%QUERY'},
+    template: '<p><strong>{{company_name}}</strong></p>',
+    engine: Hogan
+    }]).on('typeahead:selected',onSelectedTask).on('typeahead:opened',onOpened);
+   
+  function onSelectedTask($e,datum){
+    console.log("autocompleted");
+    console.log(datum);
+           
+    var hfield = document.getElementById('company_id');
+    console.log(datum.id);
+    hfield.value = datum.id;
+  }
+  function onOpened($e){
+    $("#company_id").val("")
+    $("#text_loader").hide()
+  }
+  
+  
+  function onClosed($e){
+    if($("#company_id").val() == ""){
+      $("#company_name").val("");
+    }
+  }

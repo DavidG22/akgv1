@@ -1,0 +1,181 @@
+:css
+  .edit_contact_container {overflow-y: auto;max-height:500px}
+%div{style: "margin-bottom: 6px;"}
+  -deal_cl =@deal.priority_type.present? ? @deal.priority_type.name.downcase : "na"
+  .con-box1.padlft.priority_border{:class => "#{deal_cl}_border",style: "#666"}
+    .ld-pfl-row
+      .col-md-4
+        %ul
+          %li{style: "width:45%;position:relative;right:5px;"}
+            .fl  
+              - deal_contact = @deal.deals_contacts.first.contactable if @deal.deals_contacts.present?
+              - full_name = @deal.deals_contacts.first.contactable.full_name if @deal.deals_contacts.present?
+              - contact = @deal.deals_contacts.first.contactable if @deal.deals_contacts.present?
+              - individual_contact = IndividualContact.where("id=?",@deal.individual_contact_id).first
+              - img_url = @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.image.present? ? @deal.deals_contacts.first.contactable.image.image.url(:small) : individual_contact.present? && individual_contact.image.present? ? individual_contact.image.image.url(:small) : ""              
+              - if img_url.present?
+                .lead-img-center
+                  = image_tag img_url
+              - else
+                .pf-img{style: "background: #{@deal.get_color_code(@deal.contact_name.downcase[0])}"}
+                  = @deal.deals_contacts.first.contactable.full_name[0].upcase if @deal.deals_contacts.present?
+              /.pf-img{style: "background: #{@deal.get_color_code(@deal.contact_name.downcase[0])}"}
+              /  = @deal.deals_contacts.first.contactable.full_name[0].upcase if @deal.deals_contacts.present?
+              - contact_url = contact.class.name == "IndividualContact" ? "/contact/#{contact.to_param}" : "/contact/#{contact.to_param}?type=company"
+              .name{title: "#{full_name}",style: "text-align:center;"}
+                =link_to contact.present? ? contact_url : "" do
+                  = full_name.present? ? (full_name.size > 15 ? full_name[0..12] + "..." : full_name) : individual_contact.full_name
+                
+          %li{style: "width:50%"}
+            .comp_name
+              %span.company_name_logo
+                %i.fa.fa-building-o{"aria-hidden" => "true", title: "Company Name", style: "font-size: 16px;color: #aaa;"}
+              %span
+                = @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.present? ? (@deal.deals_contacts.first.contactable.class.name == "IndividualContact" ? (@deal.deals_contacts.first.contactable.company_contact.present? ? @deal.deals_contacts.first.contactable.company_contact.name : "Not Available") : @deal.deals_contacts.first.contactable.name) : "Not Available"
+            .price
+              %span.clr $
+              =@deal.amount.present? ? @deal.amount.to_i : 0
+            .social-icon
+              %span.skp-icn
+                - if @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.present? && @deal.deals_contacts.first.contactable.messanger_id.present?
+                  =link_to @deal.deals_contacts.first.contactable.messanger_id, rel: "tooltip", title: "Click to call", style: "color: #00aff0" do
+                    %span.fa.fa-skype.active-skype{style: "padding-right: 5px;border-right: 1px solid #aaa;"}
+                - else
+                  %a{href: "javascript:void(0)"}
+                  %span.fa.fa-skype{style: "padding-right: 5px;border-right: 1px solid #aaa;"}
+              
+
+              - if deal_contact.present? && deal_contact.linkedin_url.present?
+                - linkedin_url = deal_contact.linkedin_url.include?("http") ? deal_contact.linkedin_url : "http://" + deal_contact.linkedin_url
+                =link_to linkedin_url, target: "_blank", style: "background: #007bb6" do
+                  %i.fa.fa-linkedin{"aria-hidden" => "true", title: "#{deal_contact.linkedin_url}", rel: "tooltip"}
+              -else
+                %a{:href => "javascript:void(0)"}
+                  %i.fa.fa-linkedin{"aria-hidden" => "true"}
+              - if deal_contact.present? && deal_contact.facebook_url.present?
+                - facebook_url = deal_contact.facebook_url.include?("http") ? deal_contact.facebook_url : "http://" + deal_contact.facebook_url
+                =link_to facebook_url, target: "_blank", style: "background: #3b5998" do
+                  %i.fa.fa-facebook{"aria-hidden" => "true", title: "#{deal_contact.facebook_url}", rel: "tooltip"}
+              -else
+                %a{:href => "javascript:void(0)"}
+                  %i.fa.fa-facebook{"aria-hidden" => "true"}
+              - if deal_contact.present? && deal_contact.twitter_url.present?
+                - twitter_url = deal_contact.twitter_url.include?("http") ? deal_contact.twitter_url : "http://" + deal_contact.twitter_url
+                =link_to twitter_url, target: "_blank", style: "background: #1dcaff" do
+                  %i.fa.fa-twitter{"aria-hidden" => "true", title: "#{deal_contact.twitter_url}", rel: "tooltip"}
+              -else
+                %a{:href => "javascript:void(0)"}
+                  %i.fa.fa-twitter{"aria-hidden" => "true"}
+              .cb
+
+
+              / %a{:href => "javascript:void(0)"}
+              /   %i.fa.fa-linkedin{"aria-hidden" => "true"}
+              / %a{:href => "javascript:void(0)"}
+              /   %i.fa.fa-google-plus{"aria-hidden" => "true"}
+              / %a{:href => "javascript:void(0)"}
+              /   %i.fa.fa-twitter{"aria-hidden" => "true"}
+              / %a{:href => "javascript:void(0)"}
+              /   %i.fa.fa-facebook{"aria-hidden" => "true"}
+      .col-md-8.padlft
+        .col-md-4.padlft.padrht
+          .mob-no
+            %span.cwkp-sprite.mob{title: "Phone"}
+            - phone_no = @deal.deals_contacts.present? ? (@deal.deals_contacts.first.contactable.present? && @deal.deals_contacts.first.contactable.phones.present? ? @deal.deals_contacts.first.contactable.phones.by_phone_type("work").first.phone_no : "") : ""
+            %span.ft-12{title: "#{phone_no}"}
+              = phone_no.present? ? phone_no : "Not Available"
+          .font-small
+            %span.cwkp-sprite.send-email{title: "Email"}
+            - if @deal.contact_email.present?  
+              %span{title: "#{@deal.contact_email}"}
+                = @deal.contact_email.truncate(25)
+          .font-small{style: "margin-top: 12px;"}
+            %span.cwkp-sprite.comp_size{title: "Company Size"}
+              - comp_size = @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.present? ? (@deal.deals_contacts.first.contactable.class.name == "IndividualContact" ? (@deal.deals_contacts.first.contactable.company_contact.present? && @deal.deals_contacts.first.contactable.company_contact.company_strength.present? ? @deal.deals_contacts.first.contactable.company_contact.company_strength.try(:range) : "Not Available") : @deal.deals_contacts.first.contactable.company_strength.try(:range)) : "Not Available"
+            %span{title: "#{comp_size}"}
+              = comp_size
+        .col-md-3
+          .font-small
+            %span.cwkp-sprite.lead{"aria-hidden" => "true",title: "Lead Title"}
+            %span{title: "#{@deal.title}"}
+              =truncate(@deal.title, length: 20, omission: '...')
+          .font-small
+            %span.cwkp-sprite.loc{title: "Country"}
+            %span
+              = @deal.country_id.present? && @deal.current_country.present? ? @deal.current_country.name : ''
+          .font-small{title: "Industry"}
+            %span.cwkp-sprite.company{"aria-hidden" => "true"}
+            %span  
+              = @deal.deal_industry.present? ? @deal.deal_industry.industry.name : "Not Available"
+        .col-md-5.padrht
+          - if (@deal.associated_users.include? @current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)  
+            - if @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.class.name == "IndividualContact"
+              .edit_cont
+                =link_to "javascript:void(0)", :onclick=>"$('#editContactModal').modal('show');editContact(#{@deal.deals_contacts.first.contactable.id},#{@deal.id})",title: "Edit Contact", rel: "tooltip", :remote => true do
+                  %span.glyphicon.glyphicon-pencil
+          .font-small.assn-user-top
+            %span{style: "margin-right: 8px;"} Assigned To
+            - assign_user_name = @deal.assigned_user.present? ? (@deal.assigned_user.full_name.present? ? @deal.assigned_user.full_name : @deal.assigned_user.email.split("@")[0]) : "NA"
+            - if @deal.assigned_user.present?
+              - if @deal.assigned_user.image.present? && @deal.assigned_user.image.image.present?
+                %span.user-profile
+                  %span.userImage
+                    = image_tag current_user.image.image.url(:thumb), :alt=>"", :title => "#{assign_user_name}", :style => "cursor:pointer;"
+              -else
+                %span.assn-pf-icon{title: "#{assign_user_name}", style: "background: #{@deal.assigned_user.get_user_color_code(assign_user_name.downcase[0])}"}
+                  = assign_user_name[0].upcase
+            %span
+              - if (@deal.associated_users.include?@current_user.id) || (@current_user.is_admin? || @current_user.is_super_admin?)
+              - unassigned_txt = @deal.is_remote? ? "Yet to assign" : (@deal.assigned_user  ? (@deal.assigned_user == @current_user ? "Me" : @deal.assigned_user.full_name ) : "NA")
+                %a.lead_asgn_to{href: "#", id: @deal.id, "data-type" => "select", "data-value" => @deal.assigned_user  ? @deal.assigned_user.id : "" }
+                  =truncate(unassigned_txt, length: 12, omission: '...')              
+          .font-small
+            %span{style: "margin-right: 8px;"} People Involved
+            - if @deal.assigned_user.present?
+              - users_involved = @deal.tasks.map{|t|t.user if @deal.assigned_user != t.user}.compact.uniq
+              - users_involved.each do |u|
+                - if u.image.present? && u.image.image.present?
+                  %span.user-profile
+                    %span.userImage
+                      = image_tag u.image.image.url(:thumb), :alt=>"", :title => "#{u.full_name.present? ? u.full_name : 'NA'}", :style => "cursor:pointer;"
+                -else
+                  %span.people-involved{title: "#{u.full_name.present? ? u.full_name : 'NA'}", style: "background: #{u.get_user_color_code(u.first_name.present? ? u.first_name.downcase[0] : u.email.downcase[0])}"}
+                    = u.first_name.present? ? u.first_name[0].upcase : u.email[0].upcase
+        .cb
+      .cb
+
+    .cb
+- if @deal.deals_contacts.present? && @deal.deals_contacts.first.contactable.class.name == "IndividualContact"
+  - @contact = @deal.deals_contacts.first.contactable if @deal.deals_contacts.present?
+  #editContactModal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", role: "dialog", tabindex: "-1"}
+    .modal-dialog.cstm-material-modal
+      .modal-content
+        .modal-header
+          Edit Contact
+          %button.close{"aria-hidden" => "true", type: "button", "data-dismiss" => "modal"} ×
+        .modal-body.edit_contact_container
+          .loader_div{style: "text-align:center"}
+            %img{src: "/assets/ajax-loader2.gif", alt: "Loader"}
+          / = render partial: "contacts/edit_contact_popup"
+
+:javascript
+  function editContact(contact_id, deal_id) {
+    $.ajax({
+      url: '/edit_ind_contact',
+        type: 'POST',
+        data: {contact_id: contact_id,deal_id: deal_id},
+        success: function(res) {
+          $("#editContactModal .modal-body").html(res);
+          $('form input[type="text"].bfh-phone, form input[type="phone"].bfh-phone, span.bfh-phone').each(function () {
+              var $phone = $(this);
+              $phone.bfhphone($phone.data());
+          });
+        },
+        error: function(res) {
+          alert("Got an error while editing Contact.");
+        }
+    });
+  } 
+
+
+  

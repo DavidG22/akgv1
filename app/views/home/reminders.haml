@@ -1,0 +1,78 @@
+.container
+  .row
+    .cb10
+    .cb10
+    .col-md-12
+      .col-md-8
+        %div
+          / Trigger the modal with a button
+          %button.btn.btn-info.btn-lg{"data-target" => "#reminderModal", "data-toggle" => "modal", :type => "button"} Add Reminder
+
+          = render :partial => "reminders_calendar"
+      .col-md-4
+        %div{:style=>"border:1px solid red;width:100px;height:100px;"}
+      .cb
+
+/ Reminder Modal
+#reminderModal.modal.fade{:role => "dialog"}
+  .modal-dialog
+    / Modal content
+    .modal-content
+      .modal-header
+        %button.close{"data-dismiss" => "modal", :type => "button"} ×
+        %h4.modal-title Add Reminder
+      - @reminder = Reminder.new
+      = form_for(@reminder, :url => reminders_path, :remote => true, :html=>{:class => "form",:method=> "Post",:id=> "reminder_form"}) do |f|
+        .modal-body
+          = render "reminder_form", :f => f
+        .modal-footer
+          =f.submit "Save", :class=> "btn btn-primary", :disable_with => "Please wait ...",:onclick=> "return validate_email('task_mail_to')"
+          %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+:javascript
+  var newdate = new Date();
+  $('#reminder_reminder_date').datetimepicker(
+    {
+      minDate: newdate, 
+      useCurrent: false,  
+      format: 'MM-DD-YYYY HH:mm'
+    }
+  )
+
+  $('input.reminder_types').on('change', function() {
+      $('input.reminder_types').not(this).prop('checked', false);
+      var reminder_type_id = $('input.reminder_types:checked').val();
+      alert(reminder_type_id)
+      $("#reminder_reminder_type_id").val(reminder_type_id);
+  });
+
+  $('.reminder_deal_typeahead').typeahead([{
+    name: 'deals',
+    valueKey: 'deal_name',
+    remote: {url: '/get_leads/'+ #{current_user.organization.id}+ '?q=%QUERY'},
+    template: '<p><strong>{{deal_name}}</strong></p>',
+    engine: Hogan
+    }]).on('typeahead:selected',onSelectedTask).on('typeahead:opened',onOpened);
+   
+  function onSelectedTask($e,datum){
+    var dfield = document.getElementById('dfield');
+    $('#lead').val(datum.id)
+    dfield.value = datum.id;    
+  }
+
+  function onOpened($e){
+    $("#dfield").val("")
+  }
+   
+  function onClosed($e){
+    if($("#dfield").val() == ""){
+      $("#reminder_lead").val("");
+    }
+  }
+
+  $('#reminder_form').bind('ajax:success', function(evt, data, status, xhr){
+    $('#reminderModal').hide();
+  });
+
+  $('#reminder_form').bind('ajax:before', function(evt, data, status, xhr){
+    $('#task_loader').show();
+  });

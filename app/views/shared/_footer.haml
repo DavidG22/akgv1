@@ -1,0 +1,163 @@
+%section.new-footer
+  .container
+    / %aside.fl
+    /   %a{:href => "javascript:void(0)"}
+    /     %span.wkps-logo-sprite.logo-1
+    /   %p.below-logo Streamline your sales activities, improve your productivity &amp; create powerful customer relationships, with this simple &amp; easy-to-use opensource CRM tool. It's Free!
+    /   %p.social-media-section
+    /     %a.social-media-icon.twitter-icon{:href => "https://twitter.com/wakeupsales", :target => "_blank"}
+    /       %i.fa.fa-twitter
+    /     %a.social-media-icon.facebook-icon{:href => "https://www.facebook.com/wakeupsales/", :target => "_blank"}
+    /       %i.fa.fa-facebook
+    /     %a.social-media-icon.linked-in--icon{:href => "https://www.linkedin.com/company/13247372", :target => "_blank"}
+    /       %i.fa.fa-linkedin
+
+    %aside.fl.fix-top-space
+      %h6.crm-tool
+        CRM Tool
+        %sup.crm-tool-sup Opensource
+      %ul
+        %li
+          %a{:href => "http://www.wakeupsales.orghttp://www.wakeupsales.org/aboutus"} About us
+        %li{style: "margin-left: -27px;"}
+          %sup.blink.blink-new  New
+          %a{:href => "http://www.wakeupsales.org/plugins"} Plugins
+        %li
+          %a{:href => "http://www.wakeupsales.org/security", :style => "outline:none;"} Security
+        %li
+          %a{:href => "https://groups.google.com/forum/#!forum/support_wakeupsales", :style => "outline:none;", :target => "_blank"} Community Forum
+        %li
+          %a{:href => "http://www.wakeupsales.org/releases", :style => "outline:none;"} Releases
+        %li
+          %a{:href => "http://www.wakeupsales.org/roadmap", :style => "outline:none;"} Roadmap
+        %li
+          %a{:href => "http://www.wakeupsales.org/report-a-bug", :style => "outline:none;"} Report a Bug
+        %li
+          %a{:href => "http://www.wakeupsales.org/features"} Features
+        
+    %aside.fl.fix-top-space  
+      %h6 Support
+      %ul
+        %li
+          %a.contact-team{:href => "javascript:void(0)"} Contact the Team
+        %li
+          %a{:href => "http://www.wakeupsales.org/Setup-Linux"} WakeUpSales on Linux
+        %li
+          %a{:href => "http://www.wakeupsales.org/Setup-Heroku"} WakeUpSales on Heroku
+        %li
+          %a{:href => "http://www.wakeupsales.org/Setup-Windows"} WakeUpSales on Windows
+        %li
+          %a{:href => "http://www.wakeupsales.org/Setup-Mac"} WakeUpSales on Mac
+        %li
+          %a{:href => "http://www.wakeupsales.org/Setup-Docker"} WakeUpSales on Docker
+        %li
+          %a{:href => "http://blog.wakeupsales.com/", :target => "_blank"} Blog
+        %li
+          %a{:href => "http://www.wakeupsales.org/faq"}
+            %span FAQ
+            %span{:style => "text-transform: lowercase;margin-left: -3px;"}s
+      .cb
+    %aside.fl.fix-top-space  
+      %h6 Services
+      %ul
+        %li
+          %a.contact-team{:href => "http://www.andolasoft.com/ruby-on-rails-development/", target: "_blank"} Ruby On Rails Development
+        %li
+          %a.contact-team{:href => "javascript:void(0)"} Customization
+        %li
+          %a{:href => "javascript:void(0)"} Workflow Changes
+        %li
+          %a{:href => "javascript:void(0)"} Cloud Deployment
+        %li
+          %a{:href => "javascript:void(0)"} Training & Walkthrough
+        %li
+          %a{:href => "javascript:void(0)"} Installation & Support
+        %li
+          %a{:href => "javascript:void(0)"} Website Integration
+        %li
+          %a{:href => "javascript:void(0)"} Data Migration
+      .cb
+    %aside.fl.fix-top-space  
+      %h6 KNOWLEDGE BASE
+      %ul
+        %li
+          %a{:href => "http://www.wakeupsales.org/What-is-CRM", :style => "outline:none;"} What is CRM?
+        %li
+          %a{:href => "http://www.wakeupsales.org/Why-we-use-CRM", :style => "outline:none;"} Why we use CRM?
+        %li
+          %a{:href => "http://www.wakeupsales.org/What-is-Lead", :style => "outline:none;"} What is Lead?
+        %li
+          %a{:href => "http://www.wakeupsales.org/used-for-educational-industry", :style => "outline:none;"} 
+            How WakeUpSales is used for 
+            %br educational industry?
+        %li
+          %a{:href => "http://www.wakeupsales.org/used-for-it-industry", :style => "outline:none;"} 
+            How WakeUpSales is used for 
+            %br IT industry?
+        %li
+          %p.social-media-section
+            %a.social-media-icon.twitter-icon{:href => "https://twitter.com/wakeupsales", :target => "_blank"}
+              %i.fa.fa-twitter
+            %a.social-media-icon.facebook-icon{:href => "https://www.facebook.com/wakeupsales/", :target => "_blank"}
+              %i.fa.fa-facebook
+            %a.social-media-icon.quora-icon{:href => "https://www.quora.com/profile/Smith-AS", :target => "_blank"}
+              %i.fa.fa-quora
+            %a.social-media-icon.linked-in-icon{:href => "https://www.linkedin.com/company/13247372", :target => "_blank"}
+              %i.fa.fa-linkedin
+            %a.social-media-icon.youtube-icon{:href => "https://www.youtube.com/channel/UCizUQwTXirxKerz_4uH1cGQ", :target => "_blank"}
+              %i.fa.fa-youtube
+
+      .cb
+    .cb
+    .news-letter-section
+      .fl.width-50
+        %h6 Newsletter
+        %p Subscribe to get all the latest updates, straight to your inbox.
+      .email-bx.fr.width-40.news_letter_form  
+        = email_field_tag :email, "",required: true,:placeholder => "Email Address",id: "subscribe_email",autocomplete: "off"
+        %button.news_letter_btn{onclick: "subscribe_news_letter()"}
+          Subscribe
+      .cb
+
+    .footer_btm
+      .footer_inner{:style => "border-top:1px solid #323335;padding:10px 0;"}
+        %span.pink{:style => "margin-left:0;"}
+          Copyright © 2016 WakeUpSales.
+          = succeed ".\u{a0}\u{a0}" do
+            %a{:href => "http://www.andolasoft.com/", :target => "_blank"} Andolasoft
+          %a{:href => "https://www.wakeupsales.com/privacy", :style => "margin: 0 10px;"} Privacy Policy
+          %a{:href => "https://www.wakeupsales.com/terms", :style => "margin: 0 10px;"} Terms of Service
+          %br/
+          %span
+            For assistance please contact
+            %a{:href => "mailto:support@wakeupsales.org"} support@wakeupsales.org
+
+        .cb
+    %div
+      %p.footer-disclaimer
+        Disclaimer: All logos, images, product names, brands and other trademarks featured or referred to within this website (www.wakeupsales.org) are the property of their respective trademark holders. These trademark holders are not affiliated with WakeUpSales, our products, services or our websites. They do not sponsor or endorse WakeUpSales's service offerings or any of our corporate solutions.
+
+:javascript
+  function subscribe_news_letter() {
+    try{
+      email = $("#subscribe_email").val();
+      if(email == "" ){
+        alert("Please enter your email to subscribe.");
+        return false;
+      }
+      var atpos = email.indexOf("@");
+      var dotpos = email.lastIndexOf(".");
+      if (email != '' && (atpos < 1 || dotpos < atpos + 2 || dotpos + 2 >= email.length)) {
+        alert('Please enter a valid email address.')
+        return false;
+      }
+      $(".news_letter_form").html("<span style='color:#ddd'>Loading...</span>");
+      var posting = $.post( "http://blog.wakeupsales.com/auto_subscription_blog.php", { email: email, domain: "cloud" });
+      posting.always(function( data ) {
+        $(".news_letter_form").html("<div class='news_letter_success'>Cheers! Please, check your Inbox to confirm your subscription.</div>");
+      });
+    }
+    catch(err) {
+      $("#subscribe_email").html(err.message);
+    }
+  }

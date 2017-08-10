@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <title>Confirmation</title>
+  </head>
+  <body leftmargin="0" marginheight="0" marginwidth="0" offset="0" style="font-family:'Trebuchet MS'; font-size:13px; color:#666" topmargin="0">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="width:750px;padding-top:10px;">
+      <tr>
+        <td>
+          <table align="center" border="0" cellpadding="10" cellspacing="0" style="width:640px">
+            <tr>
+              <td height="50" style="text-align: center;">
+                <img src="http://www.wakeupsales.org/img/wus/all_in_one_crm.png" style="height:100%;"/>
+              </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #dfdfdf; background-color:#ffffff; font-size:13px; font-family:Trebuchet MS, tahoma, verdana; color:#666666;">
+                <p>
+                 Hi&nbsp;<%= @resource.full_name.present? ? @resource.full_name : @resource.email %>,
+                </p>
+                <p >
+                  '<%= @resource.invited_by_wus_user %>' has invited you to join the organization '<%= @resource.organization.name %>' on Wakeupsales CRM.
+                </p>
+          <p>Please click on the link below, to proceed further.</p>
+          <p>
+          <div>
+            <a href="<%=accept_invitation_url(@resource, :invitation_token => @token)%>" target="_blank" style="cursor: pointer;text-decoration: none;border: 1px solid #01447a;color: #FFFFFF;font-weight: bold;margin-top: 20px;padding: 15px 140px;text-align: center;background: #277dc2;margin: 40px auto;font-size: 16px;display:block;">Accept Invitation</a>
+          </div>
+         
+         </p>
+        <br>
+        <p>
+           If you don't want to accept the invitation, please ignore this email.<br/>
+           Your account won't be created until you access the link above and set your password.
+        
+        </p>
+        <p>Regards,</p>
+        <p>Your Friends at Wakeupsales</p>
+        
+                <div style="clear:both;height:5px"></div>
+              </td>
+            </tr>
+               <tr>
+              <td style="background: #f8f8f8;border-top:none !important;border:1px solid #dfdfdf;">
+                <p style="color:#666666;margin:0">
+                  <div style="padding:30px 40px;">                    
+                    <div style="clear:both"></div>
+                    <div style="height: 50px;text-align: center;">
+                      <img src="http://www.wakeupsales.org/img/wus/w-logo.jpg" alt='' style="height:100%"></img>
+                    </div>
+                    <div style="color:#999;font-size:12px;margin:17px 0;text-align:center">Copyright 2017 WakeUpSales. All Rights Reserved.<br>2059 Camden Ave. #118, San Jose, CA 95124, USA</div>
+                    <div style="margin:0 auto">
+                      <div style="padding:0;text-align:center">
+                        <span style="font-size:12px;">
+                          <a href="http://blog.wakeupsales.com/" style="color:#1584d3;text-decoration:none" target="_blank">Blog</a>
+                        </span>
+                        <span style="font-size:12px;color:#bbb;padding:0 10px">
+                          |
+                        </span>
+                        
+                        <span style="font-size:12px;">
+                          <a href="https://www.wakeupsales.com/contact_us" style="color:#1584d3;text-decoration:none" target="_blank">Support</a>
+                        </span>
+                        <span style="font-size:12px;color:#bbb;padding:0 10px">
+                          |
+                        </span>
+                        <span style="font-size:12px;">
+                          <a href="https://www.wakeupsales.com/features" style="color:#1584d3;text-decoration:none" target="_blank">Features</a>
+                        </span>
+                        <span style="font-size:12px;color:#bbb;padding:0 10px">
+                          |
+                        </span>
+                        <span style="font-size:12px;">
+                          <a href="https://www.wakeupsales.com/integrations" style="color:#1584d3;text-decoration:none" target="_blank">Integration</a>
+                        </span>
+                      </div>
+                      <div style="text-align: center;margin-top: 10px;">
+                        <a href="https://twitter.com/wakeupsales" style="display: inline-block;width: 40px;height:40px;" target="_blank">
+                          <img src="https://promote.disclosurequest.com/assets/twitter-round-2a8aeecff6fe6d0b121ff1f87821197d3afcdbaf2e7b57d6949d7cd028adf9c6.png" alt="twitter-icon" width="36px" height="36px">
+                        </a>
+                        <a href="https://www.facebook.com/wakeupsales/" target="_blank" style="display: inline-block;width: 40px;height:40px;">
+                          <img src="https://cdn3.iconfinder.com/data/icons/free-social-icons/67/facebook_circle_color-512.png" alt="fb-icon" style="width:100%">
+                        </a>
+                        <a href="https://www.linkedin.com/company-beta/13247372/" style="display: inline-block;width: 40px;height:40px;" target="_blank">
+                          <img src="https://cdn3.iconfinder.com/data/icons/free-social-icons/67/linkedin_circle_color-512.png" alt="linkedin-icon" style="width:100%">
+                        </a>
+                        <!-- <a href="#" style="display: inline-block;width: 40px;height:40px;" target="_blank">
+                          <img src="https://www.jeremysaid.com/wp-content/uploads/2015/06/googleplus2.svg" alt="g-plus-icon" style="width:100%"></img>
+                        </a> -->
+                      </div>
+                    </div>
+                  </div>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <table align="center" border="0" cellpadding="10" cellspacing="0" style="width:640px">
+            <tr>
+              <td style="font-size:10px; padding:10px 0 10px 0px; line-height:30px; font-family:Trebuchet MS, tahoma, verdana; color:#666666; margin-top:20px;">
+                <div style="font-size:10px;line-height:20px;margin:10px auto;text-align:center;width:100%">
+                  You are receiving this email notification because you have subscribed to WakeUpSales, to unsubscribe, please email with subject 'Unsubscribe' to
+                  <a href="mailto:support@wakeupsales.com" style="color:#105687;text-decoration:none" target="_blank">support@wakeupsales.com</a>
+                  <div class="yj6qo"></div>
+                  <div class="adL"></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td height="20px"></td>
+      </tr>
+    </table>
+  </body>
+</html>

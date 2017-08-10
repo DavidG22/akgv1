@@ -1,0 +1,76 @@
+- note = Note.new()
+= form_for(note,:url=>"/add_notes", :remote=>true,:html=>{:class => "form",:method=>"post",:id=>"new-notes-popup",:multipart => true}) do |f|
+  = hidden_field_tag :notable_type, "Deal"
+  = hidden_field_tag :notable_id, @deal.id
+  = hidden_field_tag :remove_file_ids
+  %label.col-sm-1.control-label{style: "padding-left: 11px;padding-top: 11px;"}
+    .fl
+      - if @current_user.image.present? && @current_user.image.image.present?
+        = image_tag @current_user.image.image.url(:thumb), :alt=>"",:class=> "profile-circle fl"
+      - else
+        = image_tag "no_user30.png", :alt=>"dummy user",:class=>"profile-circle"
+  .col-sm-11{style: "padding:0"}
+    =hidden_field_tag "hidden_note","",name: "note[notes]"
+    =f.text_area :notes, :required => true ,name:"not", :class=> "form-control",:style =>"height:50px;width:100%;background:#fcfcfc;padding-right:40px;", :onblur =>"this.value = jQuery.trim((this.value).replace(/^\s*/g,''))", placeholder: "Write something"
+    =hidden_field_tag "note_from_deal", true
+    =hidden_field_tag "temp_file_ids"
+    #fileuploader
+      Upload
+    .cb
+    #show_file_name{style: "background: #f1f5fa;padding: 10px;width: 65%;margin: 5px;display:none"}
+    %br
+    %button.btn.btn-primary{type: "submit", disable_with: "Please wait...", id: "notes_submit_btn",onclick: "getd('hidden_note');"} Add Note
+    %button.btn.btn-default{type: "button",onclick: "remove_note();"} Cancel
+
+:javascript
+  $("#fileuploader").uploadFile({
+      url:"/upload_multiple_note_attach",
+      multiple:true,
+      fileName:"myfile",
+      showDelete: true,
+      returnType: "json",
+      //showAbort:false,
+      showDone:false,
+      deletelStr: "",
+      abortStr: "",
+      uploadButtonClass:"ajax-file-upload-green",
+      
+      onSuccess:function(files,data,xhr)
+      {
+        
+        tempids=[];
+        if(data["message"] =="success")
+        {
+          
+          if($("#temp_file_ids").val() != "")
+          {
+          tempids= $("#temp_file_ids").val().split(",");
+          addItem = data["id"];
+          tempids.splice(tempids.length,1, addItem);
+          $("#temp_file_ids").val(tempids);
+          }
+          else
+          {
+            $("#temp_file_ids").val(data["id"]);
+          }
+          set_required_for_file_descrption(this);
+        }
+        
+      },
+      deleteCallback: function (data, pd) {
+      var tempids=[]; 
+      tempids= $("#temp_file_ids").val().split(",");
+      removeItem = data["id"];
+      tempids.removeByValue(removeItem);
+      $("#temp_file_ids").val(tempids);    
+      
+         $.post("/delete_temp_note_attach?tf_id=" + data["id"], {op: "delete",id: data["id"]},
+             function (resp,textStatus, jqXHR) {
+             
+              
+             });
+          
+           pd.statusbar.hide(); //You choice.
+           $("#show_file_name").hide();
+      }
+    });

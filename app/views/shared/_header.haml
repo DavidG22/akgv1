@@ -1,0 +1,116 @@
+= javascript_include_tag "https://secure.skypeassets.com/i/scom/js/skype-uri.js"
+:javascript
+  $(function(){
+   $('a[rel="tooltip"],i,input:checkbox,button,div').powerTip({placement: 'n'});
+   $(".slide_m").hide();
+   $(".nav.navbar-nav li a").hover(function(){
+     $(this).find(".slide_m").show('slide', { direction: 'right' }, 300);
+   },function(){
+     $(this).find(".slide_m").hide();
+   });
+   $('.f_menu').click(function() {
+    //$(this).preventDefault();
+    $(this).next('.dropdown-menu').toggle(100);
+    //$(this).find('.dropdown-menu').stop(true, true).slideToggle(100);
+    //e.preventDefault()
+   });
+  });
+  function send_mail(){
+    $('#task_loader').show();
+    $.ajax({
+      type: "POST",
+      url: "/send_latest_blog_mail" ,
+      data: {},
+      success: function(result) {
+        $('#task_loader').hide();
+        $(document).trigger("add-alerts", [{'message': "Latest blog mail sent successfully." ,'priority': 'success'}]);
+      }
+    });
+  }  	  
+  
+/ - if user_signed_in?
+/   .navbar.navbar-default{role: "navigation"}
+/     = render :partial => "shared/top_header"
+/ - else
+%div
+  %header.new_header
+    %nav
+      #stickyheader.top_menu_land
+        .corner-icon
+        #wrapper.menu_outer_hm
+          .fl.logo_landing
+            %span.b_lg
+              %a{:href => "http://www.wakeupsales.org"}
+                / <img src="http://www.wakeupsales.org/img/wakeup-salelogo.png"  alt="WakeUpSales CRM" title="WakeUpSales CRM"/>
+                %span.wkps-logo-sprite.logo-2
+                / <strong class="sb_ttl logo-sub-text">Open Source CRM Tool</strong>
+          #nav-main.fl.top_land_menu
+            %ul
+              %li.how-hover.serv_smenu
+                %a#show_slide_menu{:href => "javascript:void(0)", :style => "outline:none;"} Community
+                / <span class="header-down-arw"></span>
+                .how-sub-menu.osource_community.osource_installation
+                  %span.arrow-img
+                    %img{:alt => "arw_top", :src => "http://www.orangescrum.org/img/home/arw_top.png"}
+                  %ul
+                    %li
+                      %a{:href => "https://groups.google.com/forum/#!forum/support_wakeupsales", :target => "_blank"} Community Forum
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/faq", :style => "outline:none;", target: "_blank"} FAQ
+              %li.how-hover.serv_smenu
+                %a{:href => "http://www.wakeupsales.org/services", :style => "outline:none;", target: "_blank"} Services
+              %li.how-hover.serv_smenu{:style => "margin: 0px 20px 0px -18px"}
+                %sup.blink{:style => "color:#FF0000;cursor:text;top: -13px;left: 85px;position: relative;font-size: 10px;"}  New
+                %a{:href => "http://www.wakeupsales.org/plugins", :style => "outline:none;", target: "_blank"} Plugins
+              %li.how-hover.serv_smenu
+                %a.i_guide_os{:href => "http://www.wakeupsales.org/installation_guide", :style => "outline:none;margin-left:-5px;", target: "_blank"} Installation Guide
+                / <span class="header-down-arw"></span>
+                .how-sub-menu.osource_community.osource_installation
+                  %span.arrow-img
+                    %img{:alt => "arw_top", :src => "http://www.orangescrum.org/img/home/arw_top.png"}/
+                  %ul
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Setup-Linux", :style => "outline:none;", target: "_blank"} WakeUpSales on Linux
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Setup-Heroku", :style => "outline:none;", target: "_blank"} WakeUpSales on Heroku
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Setup-Windows", :style => "outline:none;", target: "_blank"} WakeUpSales on Windows
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Setup-Mac", :style => "outline:none;", target: "_blank"} WakeUpSales on Mac
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Setup-Docker", :style => "outline:none;", target: "_blank"} WakeUpSales on Docker
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/customization", :style => "outline:none;", target: "_blank"} How to Customize
+                    %li
+                      %a{:href => "http://www.wakeupsales.org/Google-calender-installation-guide", :style => "outline:none;", target: "_blank"} How to Sync google calendar
+              %li.how-hover.serv_smenu{:style => "margin-left: 5px;"}
+                %a{:href => "http://www.wakeupsales.org/knowledge-base", :style => "outline:none;", target: "_blank"} Knowledge Base
+              %li.how-hover.serv_smenu{:style => "margin-left: 5px;"}
+                %a{:href => "http://blog.wakeupsales.com/", :style => "outline:none;", :target => "_blank"} Blog
+              / %li.how-hover.serv_smenu.try-demo-btn
+              /   %a{:href => "http://demo.wakeupsales.org", :style => "margin:0 10px;z-index: 999999;", :target => "_blank"} Try Demo
+              /
+                <li class=" how-hover serv_smenu contactus-btn">
+                <a href="javascript:void(0)" id="tech_support">Support</a>
+                </li>
+              %li.skype-li
+                .skype-os{:id => "SkypeButton_Call_andola.ankit_1"}
+            #forgot_pwd_popup{style: "display:none"}
+              = form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post, :class => "form-horizontal", :id=>"fpwd_form" }) do |f|
+                = f.email_field :email, :required => true, :class=>"form-control", :placeholder=>"Email", :style=>""
+                %br/
+                %button.btn.btn-primary.btn-block{type: "submit"}
+                  Send instructions
+                = link_to "Sign In", "javascript:void(0)", :onclick => "$('#forgot_pwd_popup').hide();$('#signin_popup').show();$('#signin_form')[0].reset();"
+
+
+= render partial: "home/import_contact_modal"
+
+:javascript
+  $(document).ready(function(){
+    Skype.ui({
+      "name": "dropdown",
+      "element": "SkypeButton_Call_andola.ankit_1",
+      "participants": ["andola.ankeet"]
+    });
+  });

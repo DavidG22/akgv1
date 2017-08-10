@@ -1,0 +1,363 @@
+:css
+  @media (min-width: 768px) {
+    .navbar-nav.navbar-right:last-child {
+        margin-right: 0;
+    }
+  }
+:javascript
+  function trackEventLeadTracker(a,b,c){$.post("https://ldtracker.com/users/saveeventtrack",{company_unique_id:'85W0zPwAJ0',domain_unique_id:'FmvNPj5diWTfGNT2fhY4',event_name:a,eventRefer:b,email_id:c},function(a){return!0}).fail(function(a){return!0})}
+  $(function(){
+   $('a[rel="tooltip"],i,input:checkbox,button,div').powerTip({placement: 'n'});
+   // $(".slide_m").hide();
+   // $(".nav.navbar-nav li a").hover(function(){
+   //   $(this).find(".slide_m").show('slide', { direction: 'right' }, 300);
+   // },function(){
+   //   $(this).find(".slide_m").hide();
+   // });
+   $('.f_menu').click(function() {
+    //$(this).preventDefault();
+    $(this).next('.dropdown-menu').toggle(100);
+    //$(this).find('.dropdown-menu').stop(true, true).slideToggle(100);
+    //e.preventDefault()
+   });
+  });
+  function send_mail(){
+    $('#task_loader,.fixed_loader').show();
+    $.ajax( {
+      type: "POST",
+      url: "/send_latest_blog_mail" ,
+      data: {},
+      success: function(result) {
+        $('#task_loader,.fixed_loader').hide();
+        $(document).trigger("add-alerts", [{'message': "Latest blog mail sent successfully." ,'priority': 'success'}]);
+      },
+      complete: function(result) {
+        $('#task_loader,.fixed_loader').hide();
+        
+      },
+      error: function(result) {
+        
+        $('#task_loader,.fixed_loader').hide();
+        
+      }
+    });
+  }     
+=hidden_field_tag "ref_page_info", "#{params[:controller]+params[:action]}"
+%input{:type=>"hidden",:id=>"is_login",:value=>"1"}
+%input{:type=>"hidden",:id=>"hdn_sqllite",:value=>"0"}
+.nav_menu
+  %nav{:role => "navigation"}
+    .nav_title{:style => "border: 0;border-right: 1px solid rgba(6, 136, 185, 0.75);"}
+      %a.site_title{:href => "/"}
+        %span.header-small-logo
+        %span.header-logo
+    .nav.toggle{style: "width: 37px;"}
+      %a#menu_toggle{onclick: "toggleLeftMenu()"}
+        %i.fa.fa-bars
+        %span.cwkp-sprite.top-arrow
+    %input{:type=>"hidden",:id=>"session_authenticity_token",:value=>session[:_csrf_token]}
+    %ul.nav.navbar-nav.navbar-left.f_disp
+      - cache("header_right_menu_admin_#{@current_user.is_admin?}", skip_digest: true) do
+        - unless current_user.is_siteadmin?
+          %li
+            %div{onclick: "sch_slide()"}
+              .navbar-right.input-group
+                = form_tag "/search_all", method: :get, id: "search_form" do
+                  = text_field_tag :query,"", class: "form-control srch_fld",:required=> true, :placeholder => "Search..."
+                  .input-group-btn{style: "position:inherit;"}
+                    = submit_tag "", name: nil, class: "nav_srch_box", :disable_with => ""
+
+    .fr{style: "margin-right: 15px;"}
+      %ul.nav.navbar-nav.navbar-right
+        / Invoice icon will display if there atleast one Invoice
+        - plugins = Plugin.where("is_active = ?",true)
+        - if plugins.present?
+          %li.dropdown{:role => "presentation"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", href: "#"}
+              %span.cwkp-sprite.plugin_icon
+            %ul.dropdown-menu.dropdown-usermenu.pull-right.dropdown-new-menu.plug_in_list{style: "margin-right: 0;top: 60px;"}
+              - plugins.each do |plugin|
+                %li  
+                  %a{:href => plugin.url}
+                    %span{title: "#{plugin.name}"}
+                      = plugin.name
+                %li.divider
+          %li
+            %span.cwkp-sprite.vertical-bar
+        %li.dropdown{:role => "presentation"}
+          %a.dropdown-toggle{"data-toggle" => "dropdown", href: "#"}
+            %span
+              Quick Links
+            %span.cwkp-sprite.down_arrow
+          %ul.dropdown-menu.dropdown-usermenu.pull-right.dropdown-new-menu{style: "margin-right: 0;top: 48px;#{@current_user.is_admin? ? 'width:400px !important;' : 'width:150px !important;'}padding-bottom: 10px;"}
+            %div{style: "font-size:14px;margin:15px 0 0 15px;color:#333"}
+              Create
+            .new_left_menu{:class=> "#{@current_user.is_admin? ? 'col-md-6' : 'col-md-12 padrht'}"}
+              %li
+                %strong
+                  New
+              .create_new_menu  
+                %li.add_lead_icon
+                  =link_to "#dealModal", "data-toggle" => "modal", "onclick" => "$('#lead_referrer').val('Header');$('#new_deal')[0].reset();$('.error').html('');$('#deal_first_name').attr('disabled', false);" do
+                    %span.deal-larg
+                    Lead
+                / %li.divider
+                %li.add_task_icon
+                  =link_to "#taskModal", "data-toggle" => "modal", "onclick" => "$('#task_referrer').val('Header');$('#task_notify_email').val(1);$('#task_form')[0].reset();$('#email_err').html('');$('#puppy_gooddog').prop('checked', true);$('.deal_list').show();$('.contact_firstname_div').hide();$('#check_deal_show').val('false');$('#deal_title_task').removeAttr('disabled');$('#deal_title_task').prop('required','true');$('#clicked_button_ref').val('headermenu');reset_recurring_option();reset_event();$('.assign_deal_label').removeClass('control-lbl-add-txt');" do
+                    %span.task-larg
+                    Task
+                / %li.divider
+                %li.add_contact_icon
+                  =link_to "#contactModal", "data-toggle" => "modal", "onclick" => "$('#new-contact')[0].reset();$('#email_err_i').html('');$('#company_added_info_div').css('display','none');display_company_div('hide')" do
+                    %span.con-larg          
+                    Contact
+                - if (current_user.present? && (current_user.is_admin? || current_user.is_super_admin?))
+                  / %li.divider
+                  %li.invite_user_icon
+                    =link_to "#inviteuserModal","data-toggle" => "modal", "onclick" => "$('#user_invite_form')[0].reset();$('.show-alert').hide();$('#email_err_usr').html('');" do
+                      %span.invt-larg
+                      Invite a Person
+            - if @current_user.is_admin?
+              .col-md-6
+                %li 
+                  %strong
+                    Others
+                .others_menu  
+                  %li#files
+                    %a{:href => "/files"}
+                      %span.menu_icon  
+                        %span.cwkp-sprite.files{title: "Files"}
+                      %span.menu_name
+                        Files
+
+                  %li#reports
+                    %a{:href => "/reports"}
+                      %span.menu_icon  
+                        %span.cwkp-sprite.reports{title: "Reports"}
+                      %span.menu_name
+                        Reports & Analytics
+                  %li#activities
+                    %a{:href => "/activities", :onclick => "trackEventLeadTracker('Activities', 'Header', '#{user_signed_in? ? current_user.email : ""}')"}
+                      %span.menu_icon  
+                        %span.cwkp-sprite.activity{title: "Activity"}
+                      %span.menu_name
+                        Activities
+            .cb
+        
+        / %li.dropdown{:role => "presentation",style: "margin-top: -11px;"}
+        /   =link_to "#dealModal", "data-toggle" => "modal", "onclick" => "$('#lead_referrer').val('Header');$('#new_deal')[0].reset();$('.error').html('');$('#deal_first_name').attr('disabled', false);" do
+        /     %span.cwkp-sprite.add-new-cont
+
+        %li{style: "margin-right: 10px;"}
+          - if request.fullpath.include? "tasks"
+            =link_to "#taskModal", "data-toggle" => "modal", "onclick" => "$('#task_referrer').val('Header');$('#task_notify_email').val(1);$('#task_form')[0].reset();$('#email_err').html('');$('#puppy_gooddog').prop('checked', true);$('.deal_list').show();$('.contact_firstname_div').hide();$('#check_deal_show').val('false');$('#deal_title_task').removeAttr('disabled');$('#deal_title_task').prop('required','true');$('#clicked_button_ref').val('headermenu');reset_recurring_option();reset_event();$('.assign_deal_label').removeClass('control-lbl-add-txt');" do
+              %span.add_new_section
+                %span.cwkp-sprite.add-new
+                %span{style: "margin-left: -2px;"} Add Task
+          - elsif request.fullpath.include? "contact"
+            =link_to "#contactModal", "data-toggle" => "modal", "onclick" => "$('#new-contact')[0].reset();$('#email_err_i').html('');$('#company_added_info_div').css('display','none');display_company_div('hide')" do
+              %span.add_new_section
+                %span.cwkp-sprite.add-new  
+                %span{style: "margin-left: -2px;"} Add Contact
+          - elsif request.fullpath.include? "user"
+            =link_to "#inviteuserModal","data-toggle" => "modal", "onclick" => "$('#user_invite_form')[0].reset();$('.show-alert').hide();$('#email_err_usr').html('');" do
+              %span.add_new_section
+                %span.cwkp-sprite.add-new  
+                %span{style: "margin-left: -2px;"} Invite a Person
+          - else  
+            =link_to "#dealModal", "data-toggle" => "modal", "onclick" => "$('#lead_referrer').val('Header');$('#new_deal')[0].reset();$('.error').html('');$('#deal_first_name').attr('disabled', false);" do
+              / %span.cwkp-sprite.add-new-cont
+              %span.add_new_section
+                %span.cwkp-sprite.add-new
+                %span{style: "margin-left: -2px;"} Add Lead
+     
+        / %li
+        /   %span.cwkp-sprite.msg
+        / %li
+        /   %span.cwkp-sprite.notify
+        %li
+          %span.cwkp-sprite.vertical-bar
+        %li{style:"margin-left:10px"}
+          / - cache("user_menu_#{@current_user.id}", skip_digest: true) do
+          /   - display_name = current_user.full_name.blank? ? current_user.organization.name : current_user.full_name
+          /   %a.user-profile.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "javascript:;"}
+          /     - if current_user.image.present? && current_user.image.image.present?
+          /       = image_tag current_user.image.image.url(:thumb), :alt=>""
+          /     - else
+          /       .profileImage
+          /         =display_name.chars.first
+          /     = display_name
+          /     %span.fr.dwn_f_arrow{style: "margin-top: 10px;"}
+          - cache("user_menu_#{@current_user.id}", skip_digest: true) do
+            - display_name = current_user.full_name.blank? ? current_user.organization.name : current_user.full_name
+            %a.user-profile.dropdown-toggle{"aria-expanded" => "false", "data-toggle" => "dropdown", :href => "javascript:void(0);",style: "padding:12px 0 0 10px;"}
+              %span.cwkp-sprite.setting
+              / - if current_user.image.present? && current_user.image.image.present?
+              /   = image_tag current_user.image.image.url(:thumb), :alt=>""
+              / - else
+              /   .profileImage
+              /     =display_name.chars.first
+          %ul.dropdown-menu.dropdown-usermenu.pull-right{style: "margin-top: 44px !important;min-width:200px;"}
+            %li
+              %div{style: "text-align:left;margin-left:20px"}
+                %b.full-name
+                  =current_user.full_name
+                - unless current_user.is_siteadmin?
+                  %div{style: "font-size:13px"}
+                    =current_user.organization.name if current_user.organization.present?
+            %li.divider
+            %li
+              =link_to "/getting_started" do
+                %span{style: "background: url('/assets/new-ui/getting_started.png');height: 15px;width: 15px;background-size: 15px 15px;display: inline-block;vertical-align: middle;"}
+                %span Getting Started
+            %li.divider
+            %li
+              =link_to "/settings" do
+                %span.glyphicon.glyphicon-cog
+                Company Settings
+            %li.divider
+            / %li
+            /   =link_to "/profile" do
+            /     %span.glyphicon.glyphicon-user
+            /     Profile
+            / %li.divider
+            %li
+              %a{"data-target" => "#ImportContactModal", "data-toggle" => "modal", rel: "tooltip",href: "javascript:void(0)",:style=>"border-top: 1px solid #ddd;", onclick: "open_crm_modal('sugar_crm');show_crm_radio();"} 
+                %span.glyphicon.glyphicon-import{style:"color:#000"}
+                Import
+            / %li
+            /   = link_to destroy_user_session_path, :method => :delete,:id=>"logout", :onclick=>"return track_logout();",:style=>"border-top: 1px solid #ddd;" do
+            /     %i.fa.fa-sign-out.pull-right
+            /     Log Out
+= render partial: "home/import_contact_modal"
+
+:javascript      
+  //*Menu-toggle*/
+  $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("active");
+      //alert(1);
+  });  
+  $('#my-link').click(function (event) {
+    alert('Hooray!');    
+    event.preventDefault(); // Prevent link from following its href
+    track_logout();
+  });
+
+  // Start of Leadtracker script Script
+  function setSuptrackCookie(a,b,c){localStorage.setItem(a,b)}function getSuptrackCookie(a){return n="undefined"!=typeof localStorage.getItem(a)?localStorage.getItem(a):"",n}$(document).ready(function(){var d=new Date(jQuery.now()),dtime=d.getFullYear()+"/"+(d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds(),pages=[];if(getSuptrackCookie("suptrack_refer")||setSuptrackCookie("suptrack_refer",document.referrer),getSuptrackCookie("suptrack_usr_code")||setSuptrackCookie("suptrack_usr_code","suptrack_usr_"+jQuery.now(),3650),!getSuptrackCookie("suptrack_usr_pages")){var url1={urls:[{url:window.location.href,lastmodified:dtime}]};setSuptrackCookie("suptrack_usr_pages",JSON.stringify(url1),3650)}if(getSuptrackCookie("suptrack_usr_pages")){var updatedpage=getSuptrackCookie("suptrack_usr_pages"),parsedpage=JSON.parse(updatedpage);parsedpage.urls.push({url:window.location.href,lastmodified:dtime});var finstrprse=JSON.stringify(parsedpage);setSuptrackCookie("suptrack_usr_pages",finstrprse,3650)}
+  $.post("https://ldtracker.com/users/saveprospects",{
+    company_unique_id: '85W0zPwAJ0', 
+    domain_unique_id: 'FmvNPj5diWTfGNT2fhY4', 
+    clientip:'#{request.env['REMOTE_ADDR']}',
+    domain:'#{request.env['SERVER_NAME']}',
+    created_at:dtime,
+    referURL:getSuptrackCookie('suptrack_refer') //This is the localstorage function to store data of referer
+  },function(Data){
+  },'json').fail(function(response) {
+    return true;
+  });
+     
+  if(getSuptrackCookie('suptrack_usr_name') && getSuptrackCookie('suptrack_usr_code')) {
+    jQuery.post("https://ldtracker.com/users/updatepages",
+      {
+        company_unique_id: '85W0zPwAJ0', 
+        domain_unique_id: 'FmvNPj5diWTfGNT2fhY4',
+        usr_code:getSuptrackCookie('suptrack_usr_code'),
+        usr_pages:getSuptrackCookie('suptrack_usr_pages')
+      },
+    function(data){ //Success
+             
+    }).fail(function(response){ //Response Fail
+             
+    });
+    }
+  });
+
+  function track_signin(){
+    var email = $("#user_email").val();
+    var login_time = "#{Time.now.strftime('%Y-%m-%d %H:%M:%S')}";
+    $.post("https://ldtracker.com/users/savesessiontrack",{
+        company_unique_id:'85W0zPwAJ0', //This is Company Unique Id
+        domain_unique_id:'FmvNPj5diWTfGNT2fhY4', //This is Domain Unique Id
+        last_login: login_time,
+        email_id: email
+    },function(Data){
+    },'json').fail(function(response) {
+        return true;
+    });
+  }
+  function track_logout(){
+    var logout_time = "#{Time.now.strftime('%Y-%m-%d %H:%M:%S')}";
+    var email = "#{current_user.nil? ? '' : current_user.email}";
+    $.post("https://ldtracker.com/users/updatelogoutsession",{
+        company_unique_id:'85W0zPwAJ0', //This is Company Unique Id
+        domain_unique_id:'FmvNPj5diWTfGNT2fhY4', //This is Domain Unique Id
+        last_logout_date: logout_time,
+        email_id: email
+    },function(Data){
+        //document.location.href = 'index.php';
+    },'json').fail(function(response) {
+        return true;
+    });
+  }
+  
+  function toggleLeftMenu(){
+    // Toggle right => 
+    if ( $(".left_col.menu_fixed").hasClass("small_menu") == true )
+    {
+      toggleRight();
+    }
+    // Toggle Left <=
+    else
+    {
+      toggleLeft();
+    }
+    
+  }
+
+  function toggleRight(){
+    $(".left_col.menu_fixed").removeClass("small_menu");
+    $(".right-container").css({"padding": "135px 0 0 200px"});
+    $(".nav.side-menu > li > a").css("padding","15px");
+    $(".side-menu .menu_icon").css("display","inline-block");
+    $(".side-menu .menu_name").css({"display":"inline-block"});
+    $(".menu_section .drop_down_section").css("font-size","14px");
+    $(".side-menu .menu_name.ml-3").css({"margin-left":"0"});
+    $(".lead-location").show();
+    $(".count-box").show();
+    $(".link_name").addClass("fl");
+    $(".menu_name").show();
+    $(".nav_title").css({"width":"200px"});
+    $(".span.header-logo").show();
+    $("#menu_toggle .fa-bars").hide();
+    $("#menu_toggle .top-arrow").show();
+    $(".profile_menu_list").removeClass("show-pf-options");
+    $(".fixed-in-app-header").css({"width":"85%%","padding-right":"210px"});
+    $(".dashboard-page").parent().css({"padding-top":"75px"});
+    $(".custom_right_padding").parent().css({"padding-top":"85px"});   
+  }
+  function toggleLeft(){
+    $(".left_col.menu_fixed").addClass("small_menu");
+    $(".right-container").css({"padding": "135px 0 0 60px"});
+    $(".nav.side-menu > li > a").css("padding","5px");
+    $(".side-menu .menu_icon").css("display","block");
+    $(".side-menu .menu_name").css({"display":"block","margin-top":"-5px"});
+    $(".menu_section .drop_down_section").css("font-size","12px");
+    $("#gettingStarted .menu_name").css({"line-height":"15px","margin-top":"-2px"});
+    $(".side-menu .menu_name.ml-3").css({"margin-left":"-3px"});
+    $(".count-box").hide();
+    $(".link_name").removeClass("fl");
+    $(".menu_name").hide();
+    $(".nav_title").css({"width":"60px"});
+    $(".span.header-small-logo").show();
+    $(".profile_menu_list").hide();
+    $("#menu_toggle .fa-bars").show();
+    $("#menu_toggle .top-arrow").hide();
+    $(".profile_menu_list").addClass("show-pf-options");
+    $(".fixed-in-app-header").css({"width":"100%","padding-right":"70px"});
+    $(".dashboard-page").parent().css({"padding-top":"75px"});
+    $(".custom_right_padding").parent().css({"padding-top":"85px"});   
+  }
+
+  
